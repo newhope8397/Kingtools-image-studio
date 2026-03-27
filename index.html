@@ -9,13 +9,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', system-ui, sans-serif; }
         canvas { max-height: 65vh; background: #111; border-radius: 12px; touch-action: none; }
-        .filter-thumb { 
+        .filter-thumb, .effect-thumb { 
             width: 68px; height: 68px; 
             border-radius: 8px; 
             object-fit: cover; 
             border: 2px solid transparent; 
         }
-        .filter-thumb.active { 
+        .filter-thumb.active, .effect-thumb.active { 
             border-color: rgb(167 139 250); 
             box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.4);
         }
@@ -48,14 +48,29 @@
     <!-- Tool Panel -->
     <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[42vh] overflow-auto"></div>
 
-    <!-- Bottom Nav -->
+    <!-- Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
         <div class="flex text-xs font-medium">
-            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">✨</span><span>Magic</span></button>
-            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400"><span class="text-2xl">🎨</span><span>Filters</span></button>
-            <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">⚡</span><span>Effects</span></button>
-            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">🧼</span><span>Eraser</span></button>
-            <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">✂️</span><span>Crop</span></button>
+            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
+                <span class="text-2xl">✨</span>
+                <span>Magic</span>
+            </button>
+            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">🎨</span>
+                <span>Filters</span>
+            </button>
+            <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">⚡</span>
+                <span>Effects</span>
+            </button>
+            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">🧼</span>
+                <span>Eraser</span>
+            </button>
+            <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">✂️</span>
+                <span>Crop</span>
+            </button>
         </div>
     </div>
 
@@ -81,6 +96,14 @@
             {name:"Zeal", filter:"hue-rotate(90deg) saturate(125%)"}
         ];
 
+        const effectsList = [
+            {name:"Shadows", emoji:"🌑", desc:"Add depth"},
+            {name:"Duotone", emoji:"🎨", desc:"Two-tone effect"},
+            {name:"Blur", emoji:"🌫️", desc:"Soft focus"},
+            {name:"Auto Focus", emoji:"🔍", desc:"Sharp subject"},
+            {name:"Face Retouch", emoji:"✨", desc:"Smooth skin"}
+        ];
+
         function saveHistory() {
             historyStack = historyStack.slice(0, historyIndex + 1);
             historyStack.push(canvas.toDataURL());
@@ -92,7 +115,7 @@
             historyIndex--;
             const img = new Image();
             img.src = historyStack[historyIndex];
-            img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
 
         function redo() {
@@ -100,7 +123,7 @@
             historyIndex++;
             const img = new Image();
             img.src = historyStack[historyIndex];
-            img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
 
         function loadSampleImage() {
@@ -137,7 +160,6 @@
         function showFiltersPanel() {
             let html = `<div class="text-center font-medium mb-4">Filters</div>`;
             html += `<div class="flex gap-3 overflow-x-auto pb-6 snap-x">`;
-            
             filtersList.forEach(f => {
                 html += `
                     <div onclick="applyFilter('${f.filter}'); highlightActive(this)" class="flex-shrink-0 text-center cursor-pointer">
@@ -148,13 +170,74 @@
             });
             html += `</div>`;
             html += `<button onclick="resetToOriginal()" class="mt-4 w-full bg-zinc-800 py-3 rounded-2xl text-sm">Reset to Original</button>`;
-            
             document.getElementById('tool-panel').innerHTML = html;
+        }
+
+        function showEffectsPanel() {
+            let html = `<div class="text-center font-medium mb-4">Effects</div>`;
+            html += `<div class="grid grid-cols-4 gap-4">`;
+            effectsList.forEach(effect => {
+                html += `
+                    <div onclick="applyEffect('${effect.name}')" 
+                         class="text-center cursor-pointer">
+                        <div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl mb-2">
+                            ${effect.emoji}
+                        </div>
+                        <p class="text-xs text-zinc-400">${effect.name}</p>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            document.getElementById('tool-panel').innerHTML = html;
+        }
+
+        function applyEffect(name) {
+            alert(`✅ ${name} effect applied! (Simulation - full implementation coming next)`);
+            saveHistory();
+        }
+
+        function showMagicStudioPanel() {
+            let html = `<div class="text-center font-medium mb-4">Magic Studio</div>`;
+            html += `
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">🪄</div>
+                        <p class="font-medium">Magic Edit</p>
+                    </div>
+                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">📏</div>
+                        <p class="font-medium">Magic Expand</p>
+                    </div>
+                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">🖐️</div>
+                        <p class="font-medium">Magic Grab</p>
+                    </div>
+                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">Aa</div>
+                        <p class="font-medium">Grab Text</p>
+                    </div>
+                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">🖼️</div>
+                        <p class="font-medium">BG Remover</p>
+                    </div>
+                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
+                        <div class="text-3xl mb-2">🌄</div>
+                        <p class="font-medium">BG Generator</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('tool-panel').innerHTML = html;
+        }
+
+        function magicAction(action) {
+            alert(`🔮 ${action} activated!\n\n(Real AI features will be added later via backend)`);
+            saveHistory();
         }
 
         function highlightActive(el) {
             document.querySelectorAll('.filter-thumb').forEach(t => t.classList.remove('active'));
-            el.querySelector('.filter-thumb').classList.add('active');
+            const thumb = el.querySelector('.filter-thumb');
+            if (thumb) thumb.classList.add('active');
         }
 
         function downloadImage() {
@@ -165,16 +248,17 @@
         }
 
         function finishEditing() {
-            alert("✅ Done editing!");
+            alert("✅ Editing complete!");
         }
 
         function switchTool(n) {
             const panel = document.getElementById('tool-panel');
             panel.classList.remove('hidden');
 
-            if (n === 1) {
-                showFiltersPanel();
-            } else if (n === 3) {
+            if (n === 0) showMagicStudioPanel();
+            else if (n === 1) showFiltersPanel();
+            else if (n === 2) showEffectsPanel();
+            else if (n === 3) {
                 panel.innerHTML = `
                     <div class="text-center font-medium mb-3">Pixel Eraser</div>
                     <div class="flex gap-2 mb-4">
@@ -190,7 +274,7 @@
                     <button onclick="document.getElementById('tool-panel').classList.add('hidden')" class="mt-6 w-full bg-violet-600 py-3 rounded-2xl">Done</button>
                 `;
             } else {
-                panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Coming soon...</p>`;
+                panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Crop tool coming soon...</p>`;
             }
         }
 
