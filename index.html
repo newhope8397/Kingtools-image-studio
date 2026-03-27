@@ -1,1 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KingTools - Image Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        canvas { max-height: 65vh; background: #111; border-radius: 12px; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen overflow-hidden">
 
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+        <div class="flex items-center gap-4">
+            <button onclick="history.back()" class="text-2xl">✕</button>
+            <div class="flex gap-3">
+                <button class="text-xl">↩</button>
+                <button class="text-xl">↪</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="text-xl">↓</button>
+            <button onclick="finishEditing()" 
+                    class="bg-violet-600 hover:bg-violet-500 px-6 py-1.5 rounded-full text-sm font-medium">
+                Done
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Image Area -->
+    <div class="flex justify-center items-center p-4 bg-black min-h-[65vh]">
+        <div id="canvas-container" class="relative w-full max-w-md">
+            <canvas id="main-canvas" width="800" height="800" class="w-full shadow-2xl"></canvas>
+            
+            <!-- Placeholder overlay when no image -->
+            <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div class="w-20 h-20 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-4xl">🖼️</div>
+                <p class="text-zinc-400 text-sm">Tap to load sample image</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
+        <div class="flex text-xs font-medium">
+            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
+                <span class="text-2xl">✨</span>
+                <span>Magic Studio</span>
+            </button>
+            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">🎨</span>
+                <span>Filters</span>
+            </button>
+            <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">⚡</span>
+                <span>Effects</span>
+            </button>
+            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">🧼</span>
+                <span>Eraser</span>
+            </button>
+            <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1">
+                <span class="text-2xl">✂️</span>
+                <span>Crop</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tool Panel Placeholder (will expand later) -->
+    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 hidden">
+        <p class="text-center text-zinc-400 text-sm">Tool options will appear here...</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d');
+        let currentImage = null;
+
+        // Load sample baby Shiva image (replace with your own later)
+        function loadSampleImage() {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = "https://picsum.photos/id/1015/800/800"; // temporary demo image
+            img.onload = () => {
+                currentImage = img;
+                redrawCanvas();
+                document.getElementById('placeholder').style.display = 'none';
+            };
+        }
+
+        function redrawCanvas() {
+            if (!currentImage) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ratio = Math.min(canvas.width / currentImage.width, canvas.height / currentImage.height);
+            const w = currentImage.width * ratio;
+            const h = currentImage.height * ratio;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+            ctx.drawImage(currentImage, x, y, w, h);
+        }
+
+        function finishEditing() {
+            alert("✅ Image ready! (Download feature coming in next step)");
+            // Later: download logic
+        }
+
+        function switchTool(n) {
+            document.getElementById('tool-panel').classList.remove('hidden');
+            const texts = ["Magic Studio", "Filters", "Effects", "Pixel Eraser", "Crop"];
+            document.getElementById('tool-panel').innerHTML = `
+                <p class="text-center font-medium text-lg">${texts[n]} Panel</p>
+                <p class="text-center text-zinc-400 text-sm mt-2">Coming in next files...</p>
+            `;
+        }
+
+        // Auto load sample on start
+        window.onload = () => {
+            loadSampleImage();
+        };
+    </script>
+</body>
+</html>
