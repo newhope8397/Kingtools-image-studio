@@ -9,16 +9,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', system-ui, sans-serif; }
         canvas { max-height: 65vh; background: #111; border-radius: 12px; touch-action: none; }
-        .filter-thumb, .effect-thumb { 
-            width: 68px; height: 68px; 
-            border-radius: 8px; 
-            object-fit: cover; 
-            border: 2px solid transparent; 
-        }
-        .filter-thumb.active, .effect-thumb.active { 
-            border-color: rgb(167 139 250); 
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.4);
-        }
+        .thumb { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; border: 2px solid transparent; }
+        .thumb.active { border-color: rgb(167 139 250); box-shadow: 0 0 0 3px rgba(167,139,250,0.4); }
     </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen overflow-hidden">
@@ -38,7 +30,7 @@
         </div>
     </div>
 
-    <!-- Canvas -->
+    <!-- Canvas Area -->
     <div class="flex justify-center items-center p-4 bg-black min-h-[65vh]">
         <div class="relative w-full max-w-md">
             <canvas id="main-canvas" width="800" height="800" class="w-full shadow-2xl"></canvas>
@@ -52,24 +44,19 @@
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
         <div class="flex text-xs font-medium">
             <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
-                <span class="text-2xl">✨</span>
-                <span>Magic</span>
+                <span class="text-2xl">✨</span><span>Magic</span>
             </button>
             <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">🎨</span>
-                <span>Filters</span>
+                <span class="text-2xl">🎨</span><span>Filters</span>
             </button>
             <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">⚡</span>
-                <span>Effects</span>
+                <span class="text-2xl">⚡</span><span>Effects</span>
             </button>
             <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">🧼</span>
-                <span>Eraser</span>
+                <span class="text-2xl">🧼</span><span>Eraser</span>
             </button>
             <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">✂️</span>
-                <span>Crop</span>
+                <span class="text-2xl">✂️</span><span>Crop</span>
             </button>
         </div>
     </div>
@@ -83,6 +70,7 @@
         let historyStack = [];
         let historyIndex = -1;
 
+        // Filters
         const filtersList = [
             {name:"Classic", filter:"none"},
             {name:"Ink", filter:"grayscale(100%) contrast(125%)"},
@@ -96,12 +84,13 @@
             {name:"Zeal", filter:"hue-rotate(90deg) saturate(125%)"}
         ];
 
+        // Effects (simulation)
         const effectsList = [
-            {name:"Shadows", emoji:"🌑", desc:"Add depth"},
-            {name:"Duotone", emoji:"🎨", desc:"Two-tone effect"},
-            {name:"Blur", emoji:"🌫️", desc:"Soft focus"},
-            {name:"Auto Focus", emoji:"🔍", desc:"Sharp subject"},
-            {name:"Face Retouch", emoji:"✨", desc:"Smooth skin"}
+            {name:"Shadows", emoji:"🌑"},
+            {name:"Duotone", emoji:"🎨"},
+            {name:"Blur", emoji:"🌫️"},
+            {name:"Auto Focus", emoji:"🔍"},
+            {name:"Face Retouch", emoji:"✨"}
         ];
 
         function saveHistory() {
@@ -163,7 +152,7 @@
             filtersList.forEach(f => {
                 html += `
                     <div onclick="applyFilter('${f.filter}'); highlightActive(this)" class="flex-shrink-0 text-center cursor-pointer">
-                        <img src="https://picsum.photos/id/101/68/68" class="filter-thumb" alt="${f.name}">
+                        <img src="https://picsum.photos/id/101/68/68" class="thumb" alt="${f.name}">
                         <p class="text-xs mt-1 text-zinc-400">${f.name}</p>
                     </div>
                 `;
@@ -176,14 +165,11 @@
         function showEffectsPanel() {
             let html = `<div class="text-center font-medium mb-4">Effects</div>`;
             html += `<div class="grid grid-cols-4 gap-4">`;
-            effectsList.forEach(effect => {
+            effectsList.forEach(e => {
                 html += `
-                    <div onclick="applyEffect('${effect.name}')" 
-                         class="text-center cursor-pointer">
-                        <div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl mb-2">
-                            ${effect.emoji}
-                        </div>
-                        <p class="text-xs text-zinc-400">${effect.name}</p>
+                    <div onclick="applyEffect('${e.name}')" class="text-center cursor-pointer">
+                        <div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl mb-2">${e.emoji}</div>
+                        <p class="text-xs text-zinc-400">${e.name}</p>
                     </div>
                 `;
             });
@@ -192,7 +178,7 @@
         }
 
         function applyEffect(name) {
-            alert(`✅ ${name} effect applied! (Simulation - full implementation coming next)`);
+            alert(`Applied ${name} effect (demo)`);
             saveHistory();
         }
 
@@ -201,28 +187,22 @@
             html += `
                 <div class="grid grid-cols-2 gap-3">
                     <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">🪄</div>
-                        <p class="font-medium">Magic Edit</p>
+                        <div class="text-3xl mb-2">🪄</div><p class="font-medium">Magic Edit</p>
                     </div>
                     <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">📏</div>
-                        <p class="font-medium">Magic Expand</p>
+                        <div class="text-3xl mb-2">📏</div><p class="font-medium">Magic Expand</p>
                     </div>
                     <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">🖐️</div>
-                        <p class="font-medium">Magic Grab</p>
+                        <div class="text-3xl mb-2">🖐️</div><p class="font-medium">Magic Grab</p>
                     </div>
                     <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">Aa</div>
-                        <p class="font-medium">Grab Text</p>
+                        <div class="text-3xl mb-2">Aa</div><p class="font-medium">Grab Text</p>
                     </div>
                     <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">🖼️</div>
-                        <p class="font-medium">BG Remover</p>
+                        <div class="text-3xl mb-2">🖼️</div><p class="font-medium">BG Remover</p>
                     </div>
                     <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">
-                        <div class="text-3xl mb-2">🌄</div>
-                        <p class="font-medium">BG Generator</p>
+                        <div class="text-3xl mb-2">🌄</div><p class="font-medium">BG Generator</p>
                     </div>
                 </div>
             `;
@@ -230,13 +210,13 @@
         }
 
         function magicAction(action) {
-            alert(`🔮 ${action} activated!\n\n(Real AI features will be added later via backend)`);
+            alert(`🔮 ${action} activated!\n\nReal AI will be added later.`);
             saveHistory();
         }
 
         function highlightActive(el) {
-            document.querySelectorAll('.filter-thumb').forEach(t => t.classList.remove('active'));
-            const thumb = el.querySelector('.filter-thumb');
+            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+            const thumb = el.querySelector('.thumb');
             if (thumb) thumb.classList.add('active');
         }
 
@@ -259,19 +239,21 @@
             else if (n === 1) showFiltersPanel();
             else if (n === 2) showEffectsPanel();
             else if (n === 3) {
+                // Pixel Eraser
                 panel.innerHTML = `
                     <div class="text-center font-medium mb-3">Pixel Eraser</div>
                     <div class="flex gap-2 mb-4">
                         <button onclick="toggleEraseMode('erase')" class="bg-violet-600 flex-1 py-2 rounded-xl">Erase</button>
                         <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 flex-1 py-2 rounded-xl">Restore</button>
                     </div>
-                    <div>
+                    <div class="mb-4">
                         <div class="flex justify-between text-sm mb-1"><span>Size</span><span id="size-val">30</span></div>
                         <input type="range" min="5" max="100" value="30" 
                                oninput="setEraserSize(this.value); document.getElementById('size-val').textContent=this.value" 
                                class="w-full accent-violet-500">
                     </div>
-                    <button onclick="document.getElementById('tool-panel').classList.add('hidden')" class="mt-6 w-full bg-violet-600 py-3 rounded-2xl">Done</button>
+                    <button onclick="document.getElementById('tool-panel').classList.add('hidden')" 
+                            class="mt-6 w-full bg-violet-600 py-3 rounded-2xl">Done</button>
                 `;
             } else {
                 panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Crop tool coming soon...</p>`;
