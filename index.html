@@ -8,7 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', system-ui, sans-serif; }
-        canvas { max-height: 65vh; background: #111; border-radius: 12px; }
+        canvas { max-height: 65vh; background: #111; border-radius: 12px; touch-action: none; }
     </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen overflow-hidden">
@@ -18,12 +18,12 @@
         <div class="flex items-center gap-4">
             <button onclick="history.back()" class="text-2xl">✕</button>
             <div class="flex gap-3">
-                <button class="text-xl">↩</button>
-                <button class="text-xl">↪</button>
+                <button onclick="undo()" class="text-xl">↩</button>
+                <button onclick="redo()" class="text-xl">↪</button>
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <button class="text-xl">↓</button>
+            <button onclick="downloadImage()" class="text-xl">↓</button>
             <button onclick="finishEditing()" 
                     class="bg-violet-600 hover:bg-violet-500 px-6 py-1.5 rounded-full text-sm font-medium">
                 Done
@@ -31,25 +31,28 @@
         </div>
     </div>
 
-    <!-- Main Image Area -->
+    <!-- Canvas Area -->
     <div class="flex justify-center items-center p-4 bg-black min-h-[65vh]">
         <div id="canvas-container" class="relative w-full max-w-md">
             <canvas id="main-canvas" width="800" height="800" class="w-full shadow-2xl"></canvas>
-            
-            <!-- Placeholder overlay when no image -->
-            <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center hidden">
                 <div class="w-20 h-20 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-4xl">🖼️</div>
-                <p class="text-zinc-400 text-sm">Tap to load sample image</p>
+                <p class="text-zinc-400 text-sm">Loading image...</p>
             </div>
         </div>
+    </div>
+
+    <!-- Tool Panel -->
+    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[40vh] overflow-auto">
+        <!-- Dynamic content loaded here -->
     </div>
 
     <!-- Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
         <div class="flex text-xs font-medium">
-            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
+            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1">
                 <span class="text-2xl">✨</span>
-                <span>Magic Studio</span>
+                <span>Magic</span>
             </button>
             <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1">
                 <span class="text-2xl">🎨</span>
@@ -59,7 +62,7 @@
                 <span class="text-2xl">⚡</span>
                 <span>Effects</span>
             </button>
-            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
+            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
                 <span class="text-2xl">🧼</span>
                 <span>Eraser</span>
             </button>
@@ -70,54 +73,113 @@
         </div>
     </div>
 
-    <!-- Tool Panel Placeholder (will expand later) -->
-    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 hidden">
-        <p class="text-center text-zinc-400 text-sm">Tool options will appear here...</p>
-    </div>
-
+    <script src="js/eraser.js"></script>
     <script>
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         let currentImage = null;
+        let historyStack = [];
+        let historyIndex = -1;
 
-        // Load sample baby Shiva image (replace with your own later)
+        function saveToHistory() {
+            historyStack = historyStack.slice(0, historyIndex + 1);
+            historyStack.push(canvas.toDataURL());
+            historyIndex++;
+        }
+
+        function undo() {
+            if (historyIndex <= 0) return;
+            historyIndex--;
+            const img = new Image();
+            img.src = historyStack[historyIndex];
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+        }
+
+        function redo() {
+            if (historyIndex >= historyStack.length - 1) return;
+            historyIndex++;
+            const img = new Image();
+            img.src = historyStack[historyIndex];
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+        }
+
         function loadSampleImage() {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            img.src = "https://picsum.photos/id/1015/800/800"; // temporary demo image
+            // Better baby-like image (you can change later)
+            img.src = "https://picsum.photos/id/1015/800/800";
             img.onload = () => {
                 currentImage = img;
-                redrawCanvas();
-                document.getElementById('placeholder').style.display = 'none';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                document.getElementById('placeholder').classList.add('hidden');
+                saveToHistory();
+                initEraser(); // activate eraser touch
             };
         }
 
         function redrawCanvas() {
             if (!currentImage) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const ratio = Math.min(canvas.width / currentImage.width, canvas.height / currentImage.height);
-            const w = currentImage.width * ratio;
-            const h = currentImage.height * ratio;
-            const x = (canvas.width - w) / 2;
-            const y = (canvas.height - h) / 2;
-            ctx.drawImage(currentImage, x, y, w, h);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
         }
 
         function finishEditing() {
-            alert("✅ Image ready! (Download feature coming in next step)");
-            // Later: download logic
+            alert("✅ Editing complete! Image downloaded or saved.");
         }
 
         function switchTool(n) {
-            document.getElementById('tool-panel').classList.remove('hidden');
-            const texts = ["Magic Studio", "Filters", "Effects", "Pixel Eraser", "Crop"];
-            document.getElementById('tool-panel').innerHTML = `
-                <p class="text-center font-medium text-lg">${texts[n]} Panel</p>
-                <p class="text-center text-zinc-400 text-sm mt-2">Coming in next files...</p>
-            `;
+            const panel = document.getElementById('tool-panel');
+            panel.classList.remove('hidden');
+
+            if (n === 3) { // Pixel Eraser
+                panel.innerHTML = `
+                    <div class="text-center font-medium mb-3">Pixel Eraser</div>
+                    <div class="flex gap-2 justify-center mb-4">
+                        <button onclick="toggleEraseMode('erase')" 
+                                class="bg-violet-600 text-white px-6 py-2 rounded-xl flex-1">Erase</button>
+                        <button onclick="toggleEraseMode('restore')" 
+                                class="bg-zinc-700 hover:bg-zinc-600 px-6 py-2 rounded-xl flex-1">Restore</button>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Size</span>
+                            <span id="size-value">30</span>
+                        </div>
+                        <input type="range" min="5" max="100" value="30" 
+                               oninput="setEraserSize(this.value); document.getElementById('size-value').textContent = this.value"
+                               class="w-full accent-violet-500">
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span>Show original</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" onchange="alert('Show original toggle - coming soon')">
+                            <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                        </label>
+                    </div>
+                    <button onclick="document.getElementById('tool-panel').classList.add('hidden')" 
+                            class="mt-6 w-full bg-violet-600 py-3 rounded-2xl font-medium">
+                        Done
+                    </button>
+                `;
+            } else {
+                panel.innerHTML = `<p class="text-center py-8 text-zinc-400">Tool panel for ${['Magic Studio','Filters','Effects','Crop'][n]} coming next...</p>`;
+            }
         }
 
-        // Auto load sample on start
+        // Start the app
         window.onload = () => {
             loadSampleImage();
         };
