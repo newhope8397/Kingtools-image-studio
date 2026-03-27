@@ -10,15 +10,14 @@
         body { font-family: 'Inter', system-ui, sans-serif; }
         canvas { max-height: 65vh; background: #111; border-radius: 12px; touch-action: none; }
         .filter-thumb { 
-            width: 68px; 
-            height: 68px; 
+            width: 68px; height: 68px; 
             border-radius: 8px; 
             object-fit: cover; 
             border: 2px solid transparent; 
         }
         .filter-thumb.active { 
             border-color: rgb(167 139 250); 
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.4);
         }
     </style>
 </head>
@@ -35,48 +34,28 @@
         </div>
         <div class="flex items-center gap-4">
             <button onclick="downloadImage()" class="text-xl">↓</button>
-            <button onclick="finishEditing()" 
-                    class="bg-violet-600 hover:bg-violet-500 px-6 py-1.5 rounded-full text-sm font-medium">
-                Done
-            </button>
+            <button onclick="finishEditing()" class="bg-violet-600 px-6 py-1.5 rounded-full text-sm font-medium">Done</button>
         </div>
     </div>
 
-    <!-- Canvas Area -->
+    <!-- Canvas -->
     <div class="flex justify-center items-center p-4 bg-black min-h-[65vh]">
-        <div id="canvas-container" class="relative w-full max-w-md">
+        <div class="relative w-full max-w-md">
             <canvas id="main-canvas" width="800" height="800" class="w-full shadow-2xl"></canvas>
         </div>
     </div>
 
     <!-- Tool Panel -->
-    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[42vh] overflow-auto">
-        <!-- Dynamic -->
-    </div>
+    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[42vh] overflow-auto"></div>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Nav -->
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
         <div class="flex text-xs font-medium">
-            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">✨</span>
-                <span>Magic</span>
-            </button>
-            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
-                <span class="text-2xl">🎨</span>
-                <span>Filters</span>
-            </button>
-            <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">⚡</span>
-                <span>Effects</span>
-            </button>
-            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">🧼</span>
-                <span>Eraser</span>
-            </button>
-            <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1">
-                <span class="text-2xl">✂️</span>
-                <span>Crop</span>
-            </button>
+            <button onclick="switchTool(0)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">✨</span><span>Magic</span></button>
+            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400"><span class="text-2xl">🎨</span><span>Filters</span></button>
+            <button onclick="switchTool(2)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">⚡</span><span>Effects</span></button>
+            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">🧼</span><span>Eraser</span></button>
+            <button onclick="switchTool(4)" class="flex-1 py-4 flex flex-col items-center gap-1"><span class="text-2xl">✂️</span><span>Crop</span></button>
         </div>
     </div>
 
@@ -85,48 +64,43 @@
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         let currentImage = null;
-        let originalImageData = null;
+        let originalData = null;
         let historyStack = [];
         let historyIndex = -1;
 
         const filtersList = [
-            { name: "Classic", css: "" },
-            { name: "Ink", css: "grayscale(100%) contrast(125%)" },
-            { name: "Noir", css: "grayscale(100%) brightness(75%) contrast(150%)" },
-            { name: "Film", css: "sepia(80%) brightness(90%) contrast(110%)" },
-            { name: "Mono", css: "grayscale(100%)" },
-            { name: "Vivid", css: "saturate(150%) contrast(110%)" },
-            { name: "Chroma", css: "hue-rotate(30deg) saturate(125%)" },
-            { name: "Rustiq", css: "sepia(60%) hue-rotate(15deg)" },
-            { name: "Eldar", css: "brightness(110%) saturate(75%)" },
-            { name: "Zeal", css: "hue-rotate(90deg) saturate(125%)" }
+            {name:"Classic", filter:"none"},
+            {name:"Ink", filter:"grayscale(100%) contrast(125%)"},
+            {name:"Noir", filter:"grayscale(100%) brightness(75%) contrast(150%)"},
+            {name:"Film", filter:"sepia(80%) brightness(90%) contrast(110%)"},
+            {name:"Mono", filter:"grayscale(100%)"},
+            {name:"Vivid", filter:"saturate(150%) contrast(110%)"},
+            {name:"Chroma", filter:"hue-rotate(30deg) saturate(125%)"},
+            {name:"Rustiq", filter:"sepia(60%) hue-rotate(15deg)"},
+            {name:"Eldar", filter:"brightness(110%) saturate(75%)"},
+            {name:"Zeal", filter:"hue-rotate(90deg) saturate(125%)"}
         ];
 
-        function saveToHistory() {
+        function saveHistory() {
             historyStack = historyStack.slice(0, historyIndex + 1);
-            historyStack.push(canvas.toDataURL('image/png'));
+            historyStack.push(canvas.toDataURL());
             historyIndex++;
         }
 
         function undo() {
             if (historyIndex <= 0) return;
             historyIndex--;
-            loadFromHistory(historyStack[historyIndex]);
+            const img = new Image();
+            img.src = historyStack[historyIndex];
+            img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
         }
 
         function redo() {
-            if (historyIndex >= historyStack.length - 1) return;
+            if (historyIndex >= historyStack.length-1) return;
             historyIndex++;
-            loadFromHistory(historyStack[historyIndex]);
-        }
-
-        function loadFromHistory(dataUrl) {
             const img = new Image();
-            img.src = dataUrl;
-            img.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
+            img.src = historyStack[historyIndex];
+            img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
         }
 
         function loadSampleImage() {
@@ -136,90 +110,87 @@
             img.onload = () => {
                 currentImage = img;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                saveToHistory();
+                originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                saveHistory();
                 initEraser();
             };
         }
 
-        function applyFilter(cssFilter) {
+        function applyFilter(css) {
+            if (!currentImage) return;
             ctx.save();
-            ctx.filter = cssFilter || 'none';
+            ctx.filter = css;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
             ctx.restore();
-            saveToHistory();
+            ctx.filter = 'none';
+            saveHistory();
         }
 
         function resetToOriginal() {
-            if (originalImageData) {
-                ctx.putImageData(originalImageData, 0, 0);
-                saveToHistory();
+            if (originalData) {
+                ctx.putImageData(originalData, 0, 0);
+                saveHistory();
             }
         }
 
         function showFiltersPanel() {
-            let html = `<div class="font-medium text-center mb-4">Filters</div>`;
-            html += `<div class="flex gap-3 overflow-x-auto pb-6 snap-x scrollbar-hide">`;
+            let html = `<div class="text-center font-medium mb-4">Filters</div>`;
+            html += `<div class="flex gap-3 overflow-x-auto pb-6 snap-x">`;
             
-            filtersList.forEach((filter, index) => {
+            filtersList.forEach(f => {
                 html += `
-                    <div onclick="applyFilter('${filter.css}'); this.querySelector('img').classList.add('active');" 
-                         class="flex-shrink-0 text-center cursor-pointer snap-start">
-                        <img src="https://picsum.photos/id/${101 + index}/68/68" 
-                             class="filter-thumb" alt="${filter.name}">
-                        <p class="text-[10px] mt-1.5 text-zinc-400">${filter.name}</p>
+                    <div onclick="applyFilter('${f.filter}'); highlightActive(this)" class="flex-shrink-0 text-center cursor-pointer">
+                        <img src="https://picsum.photos/id/101/68/68" class="filter-thumb" alt="${f.name}">
+                        <p class="text-xs mt-1 text-zinc-400">${f.name}</p>
                     </div>
                 `;
             });
-            
             html += `</div>`;
-            html += `<button onclick="resetToOriginal()" 
-                     class="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-2xl text-sm font-medium mt-2">
-                     Reset to Original
-                    </button>`;
+            html += `<button onclick="resetToOriginal()" class="mt-4 w-full bg-zinc-800 py-3 rounded-2xl text-sm">Reset to Original</button>`;
             
             document.getElementById('tool-panel').innerHTML = html;
+        }
+
+        function highlightActive(el) {
+            document.querySelectorAll('.filter-thumb').forEach(t => t.classList.remove('active'));
+            el.querySelector('.filter-thumb').classList.add('active');
         }
 
         function downloadImage() {
             const a = document.createElement('a');
             a.download = 'kingtools-edit.png';
-            a.href = canvas.toDataURL('image/png');
+            a.href = canvas.toDataURL();
             a.click();
         }
 
         function finishEditing() {
-            alert("✅ Done! Use the Download button above.");
+            alert("✅ Done editing!");
         }
 
         function switchTool(n) {
             const panel = document.getElementById('tool-panel');
             panel.classList.remove('hidden');
 
-            if (n === 1) { // Filters
+            if (n === 1) {
                 showFiltersPanel();
-            } else if (n === 3) { // Eraser
+            } else if (n === 3) {
                 panel.innerHTML = `
                     <div class="text-center font-medium mb-3">Pixel Eraser</div>
-                    <div class="flex gap-2 justify-center mb-4">
-                        <button onclick="toggleEraseMode('erase')" class="bg-violet-600 text-white px-6 py-2 rounded-xl flex-1">Erase</button>
-                        <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 px-6 py-2 rounded-xl flex-1">Restore</button>
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="toggleEraseMode('erase')" class="bg-violet-600 flex-1 py-2 rounded-xl">Erase</button>
+                        <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 flex-1 py-2 rounded-xl">Restore</button>
                     </div>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-sm mb-1">
-                            <span>Size</span>
-                            <span id="size-val">30</span>
-                        </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1"><span>Size</span><span id="size-val">30</span></div>
                         <input type="range" min="5" max="100" value="30" 
                                oninput="setEraserSize(this.value); document.getElementById('size-val').textContent=this.value" 
                                class="w-full accent-violet-500">
                     </div>
-                    <button onclick="document.getElementById('tool-panel').classList.add('hidden')" 
-                            class="mt-4 w-full bg-violet-600 py-3 rounded-2xl font-medium">Done</button>
+                    <button onclick="document.getElementById('tool-panel').classList.add('hidden')" class="mt-6 w-full bg-violet-600 py-3 rounded-2xl">Done</button>
                 `;
             } else {
-                panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Coming soon: ${['Magic Studio','Effects','Crop'][n] || 'Tool'}</p>`;
+                panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Coming soon...</p>`;
             }
         }
 
