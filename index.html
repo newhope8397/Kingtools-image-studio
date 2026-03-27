@@ -9,6 +9,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', system-ui, sans-serif; }
         canvas { max-height: 65vh; background: #111; border-radius: 12px; touch-action: none; }
+        .filter-thumb { 
+            width: 68px; 
+            height: 68px; 
+            border-radius: 8px; 
+            object-fit: cover; 
+            border: 2px solid transparent; 
+        }
+        .filter-thumb.active { 
+            border-color: rgb(167 139 250); 
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen overflow-hidden">
@@ -35,16 +46,12 @@
     <div class="flex justify-center items-center p-4 bg-black min-h-[65vh]">
         <div id="canvas-container" class="relative w-full max-w-md">
             <canvas id="main-canvas" width="800" height="800" class="w-full shadow-2xl"></canvas>
-            <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center hidden">
-                <div class="w-20 h-20 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-4xl">🖼️</div>
-                <p class="text-zinc-400 text-sm">Loading image...</p>
-            </div>
         </div>
     </div>
 
     <!-- Tool Panel -->
-    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[40vh] overflow-auto">
-        <!-- Dynamic content loaded here -->
+    <div id="tool-panel" class="fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 max-h-[42vh] overflow-auto">
+        <!-- Dynamic -->
     </div>
 
     <!-- Bottom Navigation -->
@@ -54,7 +61,7 @@
                 <span class="text-2xl">✨</span>
                 <span>Magic</span>
             </button>
-            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1">
+            <button onclick="switchTool(1)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
                 <span class="text-2xl">🎨</span>
                 <span>Filters</span>
             </button>
@@ -62,7 +69,7 @@
                 <span class="text-2xl">⚡</span>
                 <span>Effects</span>
             </button>
-            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1 text-violet-400">
+            <button onclick="switchTool(3)" class="flex-1 py-4 flex flex-col items-center gap-1">
                 <span class="text-2xl">🧼</span>
                 <span>Eraser</span>
             </button>
@@ -78,31 +85,44 @@
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         let currentImage = null;
+        let originalImageData = null;
         let historyStack = [];
         let historyIndex = -1;
 
+        const filtersList = [
+            { name: "Classic", css: "" },
+            { name: "Ink", css: "grayscale(100%) contrast(125%)" },
+            { name: "Noir", css: "grayscale(100%) brightness(75%) contrast(150%)" },
+            { name: "Film", css: "sepia(80%) brightness(90%) contrast(110%)" },
+            { name: "Mono", css: "grayscale(100%)" },
+            { name: "Vivid", css: "saturate(150%) contrast(110%)" },
+            { name: "Chroma", css: "hue-rotate(30deg) saturate(125%)" },
+            { name: "Rustiq", css: "sepia(60%) hue-rotate(15deg)" },
+            { name: "Eldar", css: "brightness(110%) saturate(75%)" },
+            { name: "Zeal", css: "hue-rotate(90deg) saturate(125%)" }
+        ];
+
         function saveToHistory() {
             historyStack = historyStack.slice(0, historyIndex + 1);
-            historyStack.push(canvas.toDataURL());
+            historyStack.push(canvas.toDataURL('image/png'));
             historyIndex++;
         }
 
         function undo() {
             if (historyIndex <= 0) return;
             historyIndex--;
-            const img = new Image();
-            img.src = historyStack[historyIndex];
-            img.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
+            loadFromHistory(historyStack[historyIndex]);
         }
 
         function redo() {
             if (historyIndex >= historyStack.length - 1) return;
             historyIndex++;
+            loadFromHistory(historyStack[historyIndex]);
+        }
+
+        function loadFromHistory(dataUrl) {
             const img = new Image();
-            img.src = historyStack[historyIndex];
+            img.src = dataUrl;
             img.onload = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -112,77 +132,98 @@
         function loadSampleImage() {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            // Better baby-like image (you can change later)
             img.src = "https://picsum.photos/id/1015/800/800";
             img.onload = () => {
                 currentImage = img;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                document.getElementById('placeholder').classList.add('hidden');
+                originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 saveToHistory();
-                initEraser(); // activate eraser touch
+                initEraser();
             };
         }
 
-        function redrawCanvas() {
-            if (!currentImage) return;
+        function applyFilter(cssFilter) {
+            ctx.save();
+            ctx.filter = cssFilter || 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            saveToHistory();
+        }
+
+        function resetToOriginal() {
+            if (originalImageData) {
+                ctx.putImageData(originalImageData, 0, 0);
+                saveToHistory();
+            }
+        }
+
+        function showFiltersPanel() {
+            let html = `<div class="font-medium text-center mb-4">Filters</div>`;
+            html += `<div class="flex gap-3 overflow-x-auto pb-6 snap-x scrollbar-hide">`;
+            
+            filtersList.forEach((filter, index) => {
+                html += `
+                    <div onclick="applyFilter('${filter.css}'); this.querySelector('img').classList.add('active');" 
+                         class="flex-shrink-0 text-center cursor-pointer snap-start">
+                        <img src="https://picsum.photos/id/${101 + index}/68/68" 
+                             class="filter-thumb" alt="${filter.name}">
+                        <p class="text-[10px] mt-1.5 text-zinc-400">${filter.name}</p>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            html += `<button onclick="resetToOriginal()" 
+                     class="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-2xl text-sm font-medium mt-2">
+                     Reset to Original
+                    </button>`;
+            
+            document.getElementById('tool-panel').innerHTML = html;
         }
 
         function downloadImage() {
-            const link = document.createElement('a');
-            link.download = 'edited-image.png';
-            link.href = canvas.toDataURL();
-            link.click();
+            const a = document.createElement('a');
+            a.download = 'kingtools-edit.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
         }
 
         function finishEditing() {
-            alert("✅ Editing complete! Image downloaded or saved.");
+            alert("✅ Done! Use the Download button above.");
         }
 
         function switchTool(n) {
             const panel = document.getElementById('tool-panel');
             panel.classList.remove('hidden');
 
-            if (n === 3) { // Pixel Eraser
+            if (n === 1) { // Filters
+                showFiltersPanel();
+            } else if (n === 3) { // Eraser
                 panel.innerHTML = `
                     <div class="text-center font-medium mb-3">Pixel Eraser</div>
                     <div class="flex gap-2 justify-center mb-4">
-                        <button onclick="toggleEraseMode('erase')" 
-                                class="bg-violet-600 text-white px-6 py-2 rounded-xl flex-1">Erase</button>
-                        <button onclick="toggleEraseMode('restore')" 
-                                class="bg-zinc-700 hover:bg-zinc-600 px-6 py-2 rounded-xl flex-1">Restore</button>
+                        <button onclick="toggleEraseMode('erase')" class="bg-violet-600 text-white px-6 py-2 rounded-xl flex-1">Erase</button>
+                        <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 px-6 py-2 rounded-xl flex-1">Restore</button>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <div class="flex justify-between text-sm mb-1">
                             <span>Size</span>
-                            <span id="size-value">30</span>
+                            <span id="size-val">30</span>
                         </div>
                         <input type="range" min="5" max="100" value="30" 
-                               oninput="setEraserSize(this.value); document.getElementById('size-value').textContent = this.value"
+                               oninput="setEraserSize(this.value); document.getElementById('size-val').textContent=this.value" 
                                class="w-full accent-violet-500">
                     </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span>Show original</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" onchange="alert('Show original toggle - coming soon')">
-                            <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
-                        </label>
-                    </div>
                     <button onclick="document.getElementById('tool-panel').classList.add('hidden')" 
-                            class="mt-6 w-full bg-violet-600 py-3 rounded-2xl font-medium">
-                        Done
-                    </button>
+                            class="mt-4 w-full bg-violet-600 py-3 rounded-2xl font-medium">Done</button>
                 `;
             } else {
-                panel.innerHTML = `<p class="text-center py-8 text-zinc-400">Tool panel for ${['Magic Studio','Filters','Effects','Crop'][n]} coming next...</p>`;
+                panel.innerHTML = `<p class="text-center py-12 text-zinc-400">Coming soon: ${['Magic Studio','Effects','Crop'][n] || 'Tool'}</p>`;
             }
         }
 
-        // Start the app
-        window.onload = () => {
-            loadSampleImage();
-        };
+        window.onload = loadSampleImage;
     </script>
 </body>
 </html>
