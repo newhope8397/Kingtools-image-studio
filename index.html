@@ -18,13 +18,13 @@
             background-size: 40px 40px;
             border-radius: 16px;
             padding: 12px;
-            margin-bottom: 160px; /* Extra space so tool panel never covers canvas */
+            margin-bottom: 170px; /* Extra space to prevent covering */
         }
         
         canvas { 
             width: 100% !important;
             height: auto !important;
-            max-height: 55vh;
+            max-height: 54vh;
             background: transparent; 
             border-radius: 12px; 
             touch-action: none; 
@@ -32,7 +32,7 @@
         }
         
         .tool-panel {
-            max-height: 38vh;
+            max-height: 42vh;
             overflow-y: auto;
             scrollbar-width: thin;
         }
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Tool Panel -->
-    <div id="tool-panel" class="tool-panel fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 z-40"></div>
+    <div id="tool-panel" class="tool-panel fixed bottom-16 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 z-40 hidden"></div>
 
     <!-- Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 z-50">
@@ -179,10 +179,103 @@
             reader.readAsDataURL(file);
         }
 
-        // ==================== ADJUST PANEL ====================
+        // ==================== TOOL SWITCHING ====================
+        function switchTool(n) {
+            // Highlight active nav button
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + n).classList.add('active');
+
+            const panel = document.getElementById('tool-panel');
+            panel.classList.remove('hidden');
+
+            // Clear previous listeners
+            canvas.removeEventListener('pointerdown', startErase);
+            canvas.removeEventListener('pointermove', doErase);
+            canvas.removeEventListener('pointerup', stopErase);
+            canvas.removeEventListener('pointerleave', stopErase);
+
+            if (n === 0) showMagicStudioPanel();
+            else if (n === 1) showFiltersPanel();
+            else if (n === 2) showEffectsPanel();
+            else if (n === 3) showEraserPanel();
+            else if (n === 4) showCropPanel();
+            else if (n === 5) showAdjustPanel();
+        }
+
+        function closeToolPanel() {
+            document.getElementById('tool-panel').classList.add('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        }
+
+        // ==================== MAGIC STUDIO ====================
+        function showMagicStudioPanel() {
+            document.getElementById('tool-panel').innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Magic Studio</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🪄 Magic Edit</div>
+                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">📏 Magic Expand</div>
+                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🖐️ Magic Grab</div>
+                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">Aa Grab Text</div>
+                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🖼️ BG Remover</div>
+                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🌄 BG Generator</div>
+                </div>
+            `;
+        }
+
+        // ==================== FILTERS, EFFECTS, CROP, ADJUST ====================
+        function showFiltersPanel() {
+            let html = `
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Filters</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
+                <div class="flex gap-3 overflow-x-auto pb-6">`;
+            filtersList.forEach(f => {
+                html += `<div onclick="applyFilter('\( {f.filter}'); closeToolPanel()" class="flex-shrink-0 text-center cursor-pointer"><img src="https://picsum.photos/id/101/68/68" class="thumb"><p class="text-xs mt-1"> \){f.name}</p></div>`;
+            });
+            html += `</div>`;
+            document.getElementById('tool-panel').innerHTML = html;
+        }
+
+        function showEffectsPanel() {
+            document.getElementById('tool-panel').innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Effects</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
+                <div class="grid grid-cols-4 gap-4">
+                    <div onclick="applyEffect('Shadows');closeToolPanel()" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🌑</div><p class="text-xs mt-1">Shadows</p></div>
+                    <div onclick="applyEffect('Duotone');closeToolPanel()" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🎨</div><p class="text-xs mt-1">Duotone</p></div>
+                    <div onclick="applyEffect('Blur');closeToolPanel()" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🌫️</div><p class="text-xs mt-1">Blur</p></div>
+                    <div onclick="applyEffect('Face Retouch');closeToolPanel()" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">✨</div><p class="text-xs mt-1">Retouch</p></div>
+                </div>
+            `;
+        }
+
+        function showCropPanel() {
+            document.getElementById('tool-panel').innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Crop</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <button onclick="alert('Original ratio applied')" class="bg-zinc-800 py-3 rounded-2xl text-sm">Original</button>
+                    <button onclick="alert('1:1 applied')" class="bg-zinc-800 py-3 rounded-2xl text-sm">1:1</button>
+                    <button onclick="alert('16:9 applied')" class="bg-zinc-800 py-3 rounded-2xl text-sm">16:9</button>
+                </div>
+                <p class="text-center text-zinc-400 text-sm">Crop grid coming soon with drag handles</p>
+            `;
+        }
+
         function showAdjustPanel() {
             let html = `
-                <div class="text-center font-medium mb-4">Adjust</div>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Adjust</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
                 <div class="space-y-6 px-2">
                     ${createSlider('Brightness', 'brightness', 50, 150, adjustValues.brightness)}
                     ${createSlider('Contrast', 'contrast', 50, 150, adjustValues.contrast)}
@@ -246,10 +339,13 @@
             }
         }
 
-        // ==================== ERASER (Smooth) ====================
+        // ==================== ERASER ====================
         function showEraserPanel() {
             document.getElementById('tool-panel').innerHTML = `
-                <div class="text-center font-medium mb-3">Pixel Eraser</div>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-medium">Pixel Eraser</div>
+                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+                </div>
                 <div class="flex gap-2 mb-4">
                     <button onclick="toggleEraseMode('erase')" class="bg-violet-600 flex-1 py-2.5 rounded-xl text-sm font-medium">Erase</button>
                     <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 flex-1 py-2.5 rounded-xl text-sm font-medium">Restore</button>
@@ -259,7 +355,6 @@
                     <input type="range" min="8" max="120" value="${eraserSize}" oninput="setEraserSize(this.value)" class="w-full accent-violet-500">
                 </div>
                 <div class="text-xs text-zinc-400 text-center">Checkerboard shows transparent areas</div>
-                <button onclick="document.getElementById('tool-panel').classList.add('hidden')" class="mt-8 w-full bg-violet-600 py-3 rounded-2xl text-sm font-medium">Done</button>
             `;
             initEraser();
         }
@@ -318,54 +413,6 @@
             lastX = pos.x; lastY = pos.y;
         }
 
-        // ==================== OTHER PANELS ====================
-        function showMagicStudioPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="text-center font-medium mb-4">Magic Studio</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🪄 Magic Edit</div>
-                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">📏 Magic Expand</div>
-                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖐️ Magic Grab</div>
-                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">Aa Grab Text</div>
-                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖼️ BG Remover</div>
-                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🌄 BG Generator</div>
-                </div>
-            `;
-        }
-
-        function showFiltersPanel() {
-            let html = `<div class="text-center font-medium mb-4">Filters</div><div class="flex gap-3 overflow-x-auto pb-6">`;
-            filtersList.forEach(f => {
-                html += `<div onclick="applyFilter('\( {f.filter}')" class="flex-shrink-0 text-center cursor-pointer"><img src="https://picsum.photos/id/101/68/68" class="thumb"><p class="text-xs mt-1"> \){f.name}</p></div>`;
-            });
-            html += `</div><button onclick="resetToOriginal()" class="mt-4 w-full bg-zinc-800 py-3 rounded-2xl">Reset</button>`;
-            document.getElementById('tool-panel').innerHTML = html;
-        }
-
-        function showEffectsPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="text-center font-medium mb-4">Effects</div>
-                <div class="grid grid-cols-4 gap-4">
-                    <div onclick="applyEffect('Shadows')" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🌑</div><p class="text-xs mt-1">Shadows</p></div>
-                    <div onclick="applyEffect('Duotone')" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🎨</div><p class="text-xs mt-1">Duotone</p></div>
-                    <div onclick="applyEffect('Blur')" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">🌫️</div><p class="text-xs mt-1">Blur</p></div>
-                    <div onclick="applyEffect('Face Retouch')" class="text-center cursor-pointer"><div class="w-16 h-16 mx-auto bg-zinc-800 rounded-2xl flex items-center justify-center text-3xl">✨</div><p class="text-xs mt-1">Retouch</p></div>
-                </div>
-            `;
-        }
-
-        function showCropPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="text-center font-medium mb-4">Crop</div>
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <button onclick="alert('Original')" class="bg-zinc-800 py-3 rounded-2xl text-sm">Original</button>
-                    <button onclick="alert('1:1')" class="bg-zinc-800 py-3 rounded-2xl text-sm">1:1</button>
-                    <button onclick="alert('16:9')" class="bg-zinc-800 py-3 rounded-2xl text-sm">16:9</button>
-                </div>
-                <p class="text-center text-zinc-400 text-sm">Crop grid will appear on canvas (drag handles coming soon)</p>
-            `;
-        }
-
         function applyFilter(css) {
             if (!currentImage) return;
             ctx.save();
@@ -386,21 +433,6 @@
             saveHistory();
         }
 
-        function switchTool(n) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + n).classList.add('active');
-
-            const panel = document.getElementById('tool-panel');
-            panel.classList.remove('hidden');
-
-            if (n === 0) showMagicStudioPanel();
-            else if (n === 1) showFiltersPanel();
-            else if (n === 2) showEffectsPanel();
-            else if (n === 3) showEraserPanel();
-            else if (n === 4) showCropPanel();
-            else if (n === 5) showAdjustPanel();
-        }
-
         function downloadImage() {
             const a = document.createElement('a');
             a.download = 'kingtools-edit.png';
@@ -409,12 +441,11 @@
         }
 
         function finishEditing() {
-            alert("✅ KingTools Image Studio ready!\nCanvas covering fixed + all tools restored.");
+            alert("✅ KingTools Image Studio is ready!\nAll tools now open cleanly without covering the canvas.");
         }
 
         window.onload = () => {
             loadSampleImage();
-            setTimeout(() => switchTool(0), 400); // Start with Magic like Picsart
         };
     </script>
 </body>
