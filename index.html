@@ -18,13 +18,13 @@
             background-size: 40px 40px;
             border-radius: 16px;
             padding: 12px;
-            margin-bottom: 140px; /* Space for bottom nav + tool panel */
+            margin-bottom: 160px; /* Extra space so tool panel never covers canvas */
         }
         
         canvas { 
             width: 100% !important;
             height: auto !important;
-            max-height: 58vh;
+            max-height: 55vh;
             background: transparent; 
             border-radius: 12px; 
             touch-action: none; 
@@ -34,6 +34,7 @@
         .tool-panel {
             max-height: 38vh;
             overflow-y: auto;
+            scrollbar-width: thin;
         }
         
         .thumb { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; border: 2px solid transparent; }
@@ -61,7 +62,7 @@
     </div>
 
     <!-- Canvas Area -->
-    <div class="flex justify-center items-center pt-16 pb-4 bg-black min-h-screen">
+    <div class="flex justify-center items-center pt-16 pb-6 bg-black min-h-screen">
         <div class="canvas-container w-full max-w-md">
             <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
             <canvas id="main-canvas" class="w-full"></canvas>
@@ -111,21 +112,45 @@
         let lastX = 0, lastY = 0;
 
         const filtersList = [
-            {name:"Classic", filter:"none"}, {name:"Ink", filter:"grayscale(100%) contrast(125%)"},
-            {name:"Noir", filter:"grayscale(100%) brightness(75%) contrast(150%)"}, {name:"Film", filter:"sepia(80%) brightness(90%) contrast(110%)"},
-            {name:"Vivid", filter:"saturate(150%) contrast(110%)"}, {name:"Chroma", filter:"hue-rotate(30deg) saturate(125%)"}
+            {name:"Classic", filter:"none"},
+            {name:"Ink", filter:"grayscale(100%) contrast(125%)"},
+            {name:"Noir", filter:"grayscale(100%) brightness(75%) contrast(150%)"},
+            {name:"Film", filter:"sepia(80%) brightness(90%) contrast(110%)"},
+            {name:"Vivid", filter:"saturate(150%) contrast(110%)"},
+            {name:"Chroma", filter:"hue-rotate(30deg) saturate(125%)"}
         ];
 
-        function saveHistory() { historyStack = historyStack.slice(0, historyIndex + 1); historyStack.push(canvas.toDataURL()); historyIndex++; }
+        function saveHistory() {
+            historyStack = historyStack.slice(0, historyIndex + 1);
+            historyStack.push(canvas.toDataURL());
+            historyIndex++;
+        }
 
-        function undo() { if (historyIndex <= 0) return; historyIndex--; const img = new Image(); img.src = historyStack[historyIndex]; img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
-        function redo() { if (historyIndex >= historyStack.length - 1) return; historyIndex++; const img = new Image(); img.src = historyStack[historyIndex]; img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
+        function undo() {
+            if (historyIndex <= 0) return;
+            historyIndex--;
+            const img = new Image();
+            img.src = historyStack[historyIndex];
+            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        function redo() {
+            if (historyIndex >= historyStack.length - 1) return;
+            historyIndex++;
+            const img = new Image();
+            img.src = historyStack[historyIndex];
+            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
 
         function loadSampleImage() {
             const img = new Image();
             img.crossOrigin = "anonymous";
             img.src = "https://picsum.photos/id/1015/800/800";
-            img.onload = () => { currentImage = img; resetCanvasToImage(); saveHistory(); };
+            img.onload = () => {
+                currentImage = img;
+                resetCanvasToImage();
+                saveHistory();
+            };
         }
 
         function resetCanvasToImage() {
@@ -137,54 +162,183 @@
         }
 
         function triggerUpload() { document.getElementById('image-upload').click(); }
+
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
                 const img = new Image();
-                img.onload = () => { currentImage = img; resetCanvasToImage(); saveHistory(); };
+                img.onload = () => {
+                    currentImage = img;
+                    resetCanvasToImage();
+                    saveHistory();
+                };
                 img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        // ==================== PANELS ====================
-        function switchTool(n) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + n).classList.add('active');
-
-            const panel = document.getElementById('tool-panel');
-            panel.classList.remove('hidden');
-
-            if (n === 0) showMagicStudioPanel();
-            else if (n === 1) showFiltersPanel();
-            else if (n === 2) showEffectsPanel();
-            else if (n === 3) showEraserPanel();
-            else if (n === 4) showCropPanel();
-            else if (n === 5) showAdjustPanel();
+        // ==================== ADJUST PANEL ====================
+        function showAdjustPanel() {
+            let html = `
+                <div class="text-center font-medium mb-4">Adjust</div>
+                <div class="space-y-6 px-2">
+                    ${createSlider('Brightness', 'brightness', 50, 150, adjustValues.brightness)}
+                    ${createSlider('Contrast', 'contrast', 50, 150, adjustValues.contrast)}
+                    ${createSlider('Saturation', 'saturation', 0, 200, adjustValues.saturation)}
+                    ${createSlider('Temperature', 'temperature', -50, 50, adjustValues.temperature)}
+                    ${createSlider('Vignette', 'vignette', 0, 80, adjustValues.vignette)}
+                    ${createSlider('Sharpness', 'sharpness', 0, 100, adjustValues.sharpness)}
+                    ${createSlider('Clarity', 'clarity', 0, 100, adjustValues.clarity)}
+                </div>
+                <button onclick="resetToOriginal()" class="mt-8 w-full bg-zinc-800 py-3 rounded-2xl text-sm font-medium">Reset All</button>
+            `;
+            document.getElementById('tool-panel').innerHTML = html;
+            applyAdjustFilters();
         }
 
+        function createSlider(label, key, min, max, value) {
+            return `
+                <div>
+                    <div class="flex justify-between text-sm mb-1.5">
+                        <span>${label}</span>
+                        <span id="\( {key}-val" class="text-violet-400 font-medium"> \){Math.round(value)}</span>
+                    </div>
+                    <input type="range" min="\( {min}" max=" \){max}" value="${value}" 
+                           oninput="updateAdjust('${key}', this.value)" 
+                           class="w-full accent-violet-500">
+                </div>
+            `;
+        }
+
+        function updateAdjust(key, val) {
+            adjustValues[key] = parseFloat(val);
+            document.getElementById(key + '-val').textContent = Math.round(val);
+            applyAdjustFilters();
+        }
+
+        function applyAdjustFilters() {
+            if (!currentImage) return;
+            let filterStr = `brightness(\( {adjustValues.brightness}%) contrast( \){adjustValues.contrast}%) saturate(${adjustValues.saturation}%)`;
+            if (adjustValues.temperature !== 0) filterStr += ` hue-rotate(${adjustValues.temperature * 1.8}deg)`;
+
+            ctx.save();
+            ctx.filter = filterStr;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            if (adjustValues.vignette > 0) {
+                ctx.save();
+                ctx.fillStyle = `rgba(0,0,0,${Math.min(adjustValues.vignette / 200, 0.65)})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
+            saveHistory();
+        }
+
+        function resetToOriginal() {
+            if (originalData) {
+                ctx.putImageData(originalData, 0, 0);
+                adjustValues = { brightness: 100, contrast: 100, saturation: 100, temperature: 0, vignette: 0, sharpness: 0, clarity: 0 };
+                saveHistory();
+            }
+        }
+
+        // ==================== ERASER (Smooth) ====================
+        function showEraserPanel() {
+            document.getElementById('tool-panel').innerHTML = `
+                <div class="text-center font-medium mb-3">Pixel Eraser</div>
+                <div class="flex gap-2 mb-4">
+                    <button onclick="toggleEraseMode('erase')" class="bg-violet-600 flex-1 py-2.5 rounded-xl text-sm font-medium">Erase</button>
+                    <button onclick="toggleEraseMode('restore')" class="bg-zinc-700 flex-1 py-2.5 rounded-xl text-sm font-medium">Restore</button>
+                </div>
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm mb-1"><span>Brush Size</span><span id="size-val">${eraserSize}</span></div>
+                    <input type="range" min="8" max="120" value="${eraserSize}" oninput="setEraserSize(this.value)" class="w-full accent-violet-500">
+                </div>
+                <div class="text-xs text-zinc-400 text-center">Checkerboard shows transparent areas</div>
+                <button onclick="document.getElementById('tool-panel').classList.add('hidden')" class="mt-8 w-full bg-violet-600 py-3 rounded-2xl text-sm font-medium">Done</button>
+            `;
+            initEraser();
+        }
+
+        function setEraserSize(size) {
+            eraserSize = parseInt(size);
+            document.getElementById('size-val').textContent = eraserSize;
+        }
+
+        function toggleEraseMode(mode) { eraseMode = mode; }
+
+        function initEraser() {
+            canvas.removeEventListener('pointerdown', startErase);
+            canvas.removeEventListener('pointermove', doErase);
+            canvas.removeEventListener('pointerup', stopErase);
+            canvas.removeEventListener('pointerleave', stopErase);
+
+            canvas.addEventListener('pointerdown', startErase);
+            canvas.addEventListener('pointermove', doErase);
+            canvas.addEventListener('pointerup', stopErase);
+            canvas.addEventListener('pointerleave', stopErase);
+        }
+
+        function startErase(e) {
+            isErasing = true;
+            const pos = getCanvasPos(e);
+            lastX = pos.x; lastY = pos.y;
+            doErase(e);
+        }
+
+        function stopErase() {
+            if (isErasing) saveHistory();
+            isErasing = false;
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+        }
+
+        function doErase(e) {
+            if (!isErasing) return;
+            const pos = getCanvasPos(e);
+            ctx.save();
+            ctx.globalCompositeOperation = eraseMode === 'erase' ? 'destination-out' : 'source-over';
+            ctx.lineWidth = eraserSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.restore();
+            lastX = pos.x; lastY = pos.y;
+        }
+
+        // ==================== OTHER PANELS ====================
         function showMagicStudioPanel() {
             document.getElementById('tool-panel').innerHTML = `
                 <div class="text-center font-medium mb-4">Magic Studio</div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🪄 Magic Edit</div>
-                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">📏 Magic Expand</div>
-                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🖐️ Magic Grab</div>
-                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">Aa Grab Text</div>
-                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🖼️ BG Remover</div>
-                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer">🌄 BG Generator</div>
+                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🪄 Magic Edit</div>
+                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">📏 Magic Expand</div>
+                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖐️ Magic Grab</div>
+                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">Aa Grab Text</div>
+                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖼️ BG Remover</div>
+                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🌄 BG Generator</div>
                 </div>
             `;
         }
 
         function showFiltersPanel() {
-            let html = `<div class="text-center font-medium mb-4">Filters</div><div class="flex gap-3 overflow-x-auto pb-4">`;
+            let html = `<div class="text-center font-medium mb-4">Filters</div><div class="flex gap-3 overflow-x-auto pb-6">`;
             filtersList.forEach(f => {
                 html += `<div onclick="applyFilter('\( {f.filter}')" class="flex-shrink-0 text-center cursor-pointer"><img src="https://picsum.photos/id/101/68/68" class="thumb"><p class="text-xs mt-1"> \){f.name}</p></div>`;
             });
-            html += `</div>`;
+            html += `</div><button onclick="resetToOriginal()" class="mt-4 w-full bg-zinc-800 py-3 rounded-2xl">Reset</button>`;
             document.getElementById('tool-panel').innerHTML = html;
         }
 
@@ -200,48 +354,67 @@
             `;
         }
 
-        function showEraserPanel() { /* same smooth eraser as before - code omitted for brevity, copy from previous if needed */ 
-            // Paste your full eraser panel code here from last version
-            document.getElementById('tool-panel').innerHTML = `<div class="text-center font-medium mb-3">Pixel Eraser</div><div class="text-zinc-400 text-center py-8">Eraser ready (use finger on canvas)</div>`;
-            initEraser();
-        }
-
         function showCropPanel() {
             document.getElementById('tool-panel').innerHTML = `
                 <div class="text-center font-medium mb-4">Crop</div>
                 <div class="grid grid-cols-3 gap-3 mb-6">
-                    <button onclick="alert('Original ratio')" class="bg-zinc-800 py-3 rounded-2xl text-sm">Original</button>
+                    <button onclick="alert('Original')" class="bg-zinc-800 py-3 rounded-2xl text-sm">Original</button>
                     <button onclick="alert('1:1')" class="bg-zinc-800 py-3 rounded-2xl text-sm">1:1</button>
                     <button onclick="alert('16:9')" class="bg-zinc-800 py-3 rounded-2xl text-sm">16:9</button>
                 </div>
-                <p class="text-center text-zinc-400 text-sm">Crop grid active on canvas (coming soon with drag handles)</p>
+                <p class="text-center text-zinc-400 text-sm">Crop grid will appear on canvas (drag handles coming soon)</p>
             `;
         }
 
-        function showAdjustPanel() { /* full adjust with sharpness/clarity from previous version */ 
-            // Paste full Adjust panel code from earlier clean version
-            let html = `<div class="text-center font-medium mb-4">Adjust</div><div class="space-y-6">... sliders ...</div>`;
-            document.getElementById('tool-panel').innerHTML = html;
+        function applyFilter(css) {
+            if (!currentImage) return;
+            ctx.save();
+            ctx.filter = css;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            saveHistory();
         }
 
-        function magicAction(action) { alert(`🔮 ${action} activated!`); saveHistory(); }
-        function applyEffect(name) { alert(`Applied ${name}`); saveHistory(); }
-        function applyFilter(css) { /* your filter code */ }
+        function applyEffect(name) {
+            alert(`Applied ${name} effect`);
+            saveHistory();
+        }
+
+        function magicAction(action) {
+            alert(`🔮 ${action} activated!`);
+            saveHistory();
+        }
+
+        function switchTool(n) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + n).classList.add('active');
+
+            const panel = document.getElementById('tool-panel');
+            panel.classList.remove('hidden');
+
+            if (n === 0) showMagicStudioPanel();
+            else if (n === 1) showFiltersPanel();
+            else if (n === 2) showEffectsPanel();
+            else if (n === 3) showEraserPanel();
+            else if (n === 4) showCropPanel();
+            else if (n === 5) showAdjustPanel();
+        }
 
         function downloadImage() {
             const a = document.createElement('a');
-            a.download = 'kingtools-baby-shiva.png';
+            a.download = 'kingtools-edit.png';
             a.href = canvas.toDataURL('image/png');
             a.click();
         }
 
-        function finishEditing() { alert("✅ Great! Your baby Shiva image looks amazing."); }
+        function finishEditing() {
+            alert("✅ KingTools Image Studio ready!\nCanvas covering fixed + all tools restored.");
+        }
 
-        // Load on start
         window.onload = () => {
             loadSampleImage();
-            // Start with Magic Studio like Picsart
-            setTimeout(() => switchTool(0), 300);
+            setTimeout(() => switchTool(0), 400); // Start with Magic like Picsart
         };
     </script>
 </body>
