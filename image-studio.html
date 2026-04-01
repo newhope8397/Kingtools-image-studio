@@ -35,7 +35,10 @@
         }
         
         .thumb { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; border: 2px solid transparent; }
-        .nav-btn.active { color: rgb(167 139 250) !important; background-color: #27272a; }
+        .nav-btn.active { 
+            color: rgb(167 139 250) !important; 
+            background-color: #27272a; 
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen overflow-hidden">
@@ -45,8 +48,8 @@
         <div class="flex items-center gap-4">
             <a href="index.html" class="text-2xl">🏠</a>
             <div class="flex gap-3">
-                <button onclick="undo()" class="text-xl hover:text-violet-400">↩</button>
-                <button onclick="redo()" class="text-xl hover:text-violet-400">↪</button>
+                <button onclick="undo()" class="text-xl hover:text-violet-400 transition">↩</button>
+                <button onclick="redo()" class="text-xl hover:text-violet-400 transition">↪</button>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -79,387 +82,28 @@
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('main-canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
-        let currentImage = null;
-        let originalData = null;
-        let historyStack = [];
-        let historyIndex = -1;
+    <script type="module">
+        import { initEditor, loadSampleImage, triggerUpload, handleImageUpload, 
+                 saveHistory, undo, redo, downloadImage, finishEditing } from './js/editor-core.js';
 
-        let adjustValues = { brightness: 100, contrast: 100, saturation: 100, temperature: 0, vignette: 0, sharpness: 0 };
+        // Global tool switching
+        window.switchTool = async (n) => {
+            const { switchTool } = await import('./js/editor-core.js');
+            switchTool(n);
+        };
 
-        // Eraser
-        let eraserSize = 35;
-        let isErasing = false;
-        let eraseMode = 'erase';
-        let lastX = 0, lastY = 0;
+        window.onload = () => {
+            initEditor();
+            loadSampleImage();
+        };
 
-        // Crop
-        let isCropping = false;
-        let cropX = 0, cropY = 0, cropW = 0, cropH = 0;
-        let cropStartX = 0, cropStartY = 0;
-
-        const filtersList = [
-            {name:"Classic", filter:"none"},
-            {name:"Ink", filter:"grayscale(100%) contrast(125%)"},
-            {name:"Noir", filter:"grayscale(100%) brightness(75%) contrast(150%)"},
-            {name:"Film", filter:"sepia(80%) brightness(90%) contrast(110%)"},
-            {name:"Vivid", filter:"saturate(150%) contrast(110%)"},
-            {name:"Chroma", filter:"hue-rotate(30deg) saturate(125%)"}
-        ];
-
-        function saveHistory() {
-            historyStack = historyStack.slice(0, historyIndex + 1);
-            historyStack.push(canvas.toDataURL('image/png'));
-            historyIndex++;
-        }
-
-        function undo() {
-            if (historyIndex <= 0) return;
-            historyIndex--;
-            const img = new Image();
-            img.src = historyStack[historyIndex];
-            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
-
-        function redo() {
-            if (historyIndex >= historyStack.length - 1) return;
-            historyIndex++;
-            const img = new Image();
-            img.src = historyStack[historyIndex];
-            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
-
-        function loadSampleImage() {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = "https://picsum.photos/id/1015/800/800";
-            img.onload = () => {
-                currentImage = img;
-                resetCanvasToImage();
-                saveHistory();
-            };
-        }
-
-        function resetCanvasToImage() {
-            canvas.width = currentImage.width;
-            canvas.height = currentImage.height;
-            ctx.drawImage(currentImage, 0, 0);
-            originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        }
-
-        function triggerUpload() { document.getElementById('image-upload').click(); }
-
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const img = new Image();
-                img.onload = () => {
-                    currentImage = img;
-                    resetCanvasToImage();
-                    saveHistory();
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function switchTool(n) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + n).classList.add('active');
-
-            const panel = document.getElementById('tool-panel');
-            panel.classList.remove('hidden');
-
-            canvas.removeEventListener('pointerdown', startErase);
-            canvas.removeEventListener('pointermove', doErase);
-            canvas.removeEventListener('pointerup', stopErase);
-            canvas.removeEventListener('pointerleave', stopErase);
-
-            if (n === 0) showMagicStudioPanel();
-            else if (n === 1) showFiltersPanel();
-            else if (n === 2) showEffectsPanel();
-            else if (n === 3) showEraserPanel();
-            else if (n === 4) showCropPanel();
-            else if (n === 5) showAdjustPanel();
-        }
-
-        function closeToolPanel() {
-            document.getElementById('tool-panel').classList.add('hidden');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            isCropping = false;
-        }
-
-        // ===================== MAGIC =====================
-        function showMagicStudioPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <div class="font-medium">Magic Studio</div>
-                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🪄 Magic Edit</div>
-                    <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">📏 Magic Expand</div>
-                    <div onclick="magicAction('Magic Grab')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖐️ Magic Grab</div>
-                    <div onclick="magicAction('Grab Text')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">Aa Grab Text</div>
-                    <div onclick="magicAction('BG Remover')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🖼️ BG Remover</div>
-                    <div onclick="magicAction('BG Generator')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🌄 BG Generator</div>
-                </div>
-            `;
-        }
-
-        function magicAction(action) {
-            alert(`🔮 ${action} activated!\n\nAI integration coming soon.`);
-            saveHistory();
-        }
-
-        // ===================== FILTERS =====================
-        function showFiltersPanel() {
-            let html = `<div class="flex justify-between items-center mb-4"><div class="font-medium">Filters</div><button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button></div><div class="flex gap-3 overflow-x-auto pb-6">`;
-            filtersList.forEach(f => {
-                html += `<div onclick="applyFilter('${f.filter}'); closeToolPanel()" class="flex-shrink-0 text-center cursor-pointer"><img src="https://picsum.photos/id/1015/68/68" class="thumb" style="filter: \( {f.filter}"><p class="text-xs mt-1"> \){f.name}</p></div>`;
-            });
-            html += `</div>`;
-            document.getElementById('tool-panel').innerHTML = html;
-        }
-
-        function applyFilter(cssFilter) {
-            if (!currentImage) return;
-            ctx.save();
-            ctx.filter = cssFilter;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
-            ctx.restore();
-            saveHistory();
-        }
-
-        // ===================== EFFECTS =====================
-        function showEffectsPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <div class="font-medium">Effects</div>
-                    <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div onclick="applyEffect('Blur')" class="text-center cursor-pointer"><div class="w-20 h-20 mx-auto bg-zinc-800 rounded-3xl flex items-center justify-center text-4xl mb-2">🌫️</div><p class="text-sm">Blur</p></div>
-                    <div onclick="applyEffect('Shadows')" class="text-center cursor-pointer"><div class="w-20 h-20 mx-auto bg-zinc-800 rounded-3xl flex items-center justify-center text-4xl mb-2">🌑</div><p class="text-sm">Shadows</p></div>
-                    <div onclick="applyEffect('Duotone')" class="text-center cursor-pointer"><div class="w-20 h-20 mx-auto bg-gradient-to-br from-violet-500 to-amber-500 rounded-3xl flex items-center justify-center text-4xl mb-2">🎨</div><p class="text-sm">Duotone</p></div>
-                    <div onclick="applyEffect('Face Retouch')" class="text-center cursor-pointer"><div class="w-20 h-20 mx-auto bg-zinc-800 rounded-3xl flex items-center justify-center text-4xl mb-2">✨</div><p class="text-sm">Retouch</p></div>
-                </div>
-            `;
-        }
-
-        function applyEffect(name) {
-            if (name === 'Blur') ctx.filter = 'blur(5px)';
-            else if (name === 'Shadows') { ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 25; }
-            else if (name === 'Duotone') { ctx.filter = 'grayscale(100%) contrast(130%)'; }
-            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
-            ctx.filter = 'none';
-            ctx.shadowBlur = 0;
-            saveHistory();
-        }
-
-        // ===================== ERASER =====================
-        function showEraserPanel() {
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="flex justify-between items-center mb-4"><div class="font-medium">Pixel Eraser</div><button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button></div>
-                <div class="flex gap-2 mb-4">
-                    <button onclick="toggleEraseMode('erase')" class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='erase'?'bg-violet-600':'bg-zinc-700'}">Erase</button>
-                    <button onclick="toggleEraseMode('restore')" class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='restore'?'bg-violet-600':'bg-zinc-700'}">Restore</button>
-                </div>
-                <div><div class="flex justify-between text-sm mb-1"><span>Brush Size</span><span id="size-val">${eraserSize}</span></div>
-                <input type="range" min="8" max="120" value="${eraserSize}" oninput="setEraserSize(this.value)" class="w-full accent-violet-500"></div>
-            `;
-            initEraser();
-        }
-
-        function setEraserSize(size) { eraserSize = parseInt(size); document.getElementById('size-val').textContent = eraserSize; }
-        function toggleEraseMode(mode) { eraseMode = mode; showEraserPanel(); }
-
-        function initEraser() {
-            canvas.addEventListener('pointerdown', startErase);
-            canvas.addEventListener('pointermove', doErase);
-            canvas.addEventListener('pointerup', stopErase);
-            canvas.addEventListener('pointerleave', stopErase);
-        }
-
-        function startErase(e) {
-            isErasing = true;
-            const pos = getCanvasPos(e);
-            lastX = pos.x; lastY = pos.y;
-            doErase(e);
-        }
-
-        function stopErase() {
-            if (isErasing) saveHistory();
-            isErasing = false;
-        }
-
-        function getCanvasPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-        }
-
-        function doErase(e) {
-            if (!isErasing) return;
-            const pos = getCanvasPos(e);
-            ctx.save();
-            ctx.globalCompositeOperation = eraseMode === 'erase' ? 'destination-out' : 'source-over';
-            ctx.lineWidth = eraserSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            ctx.restore();
-            lastX = pos.x; lastY = pos.y;
-        }
-
-        // ===================== CROP =====================
-        function showCropPanel() {
-            cropX = 0; cropY = 0; cropW = canvas.width; cropH = canvas.height;
-            document.getElementById('tool-panel').innerHTML = `
-                <div class="flex justify-between items-center mb-4"><div class="font-medium">Crop</div><button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button></div>
-                <div class="flex gap-2 mb-4">
-                    <button onclick="applyCrop()" class="flex-1 bg-emerald-600 py-3 rounded-2xl text-sm font-medium">Apply Crop</button>
-                    <button onclick="resetCrop()" class="flex-1 bg-zinc-700 py-3 rounded-2xl text-sm font-medium">Reset</button>
-                </div>
-                <p class="text-xs text-zinc-400 text-center">Drag the rectangle to crop</p>
-            `;
-            isCropping = true;
-            drawCropOverlay();
-            canvas.addEventListener('pointerdown', startCropDrag);
-            canvas.addEventListener('pointermove', doCropDrag);
-            canvas.addEventListener('pointerup', () => { isCropping = true; });
-        }
-
-        function drawCropOverlay() {
-            ctx.save();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(currentImage, 0, 0);
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(0,0,canvas.width,cropY);
-            ctx.fillRect(0,cropY+cropH,canvas.width,canvas.height-cropY-cropH);
-            ctx.fillRect(0,cropY,cropX,cropH);
-            ctx.fillRect(cropX+cropW,cropY,canvas.width-cropX-cropW,cropH);
-            ctx.strokeStyle = '#a5b4fc';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([8,4]);
-            ctx.strokeRect(cropX, cropY, cropW, cropH);
-            ctx.setLineDash([]);
-            ctx.restore();
-        }
-
-        function startCropDrag(e) {
-            if (!isCropping) return;
-            const pos = getCanvasPos(e);
-            cropStartX = pos.x; cropStartY = pos.y;
-        }
-
-        function doCropDrag(e) {
-            if (!isCropping) return;
-            const pos = getCanvasPos(e);
-            const dx = pos.x - cropStartX;
-            const dy = pos.y - cropStartY;
-            cropX = Math.max(0, Math.min(canvas.width - cropW, cropX + dx));
-            cropY = Math.max(0, Math.min(canvas.height - cropH, cropY + dy));
-            cropStartX = pos.x; cropStartY = pos.y;
-            drawCropOverlay();
-        }
-
-        function applyCrop() {
-            const temp = document.createElement('canvas');
-            temp.width = cropW; temp.height = cropH;
-            temp.getContext('2d').drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-            currentImage = new Image();
-            currentImage.onload = () => {
-                resetCanvasToImage();
-                saveHistory();
-                closeToolPanel();
-            };
-            currentImage.src = temp.toDataURL();
-        }
-
-        function resetCrop() {
-            cropX = 0; cropY = 0; cropW = canvas.width; cropH = canvas.height;
-            drawCropOverlay();
-        }
-
-        // ===================== ADJUST (fixed) =====================
-        function showAdjustPanel() {
-            let html = `
-                <div class="flex justify-between items-center mb-4"><div class="font-medium">Adjust</div><button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button></div>
-                <div class="space-y-6 px-2">`;
-            html += createSlider('Brightness', 'brightness', 50, 150, adjustValues.brightness);
-            html += createSlider('Contrast', 'contrast', 50, 150, adjustValues.contrast);
-            html += createSlider('Saturation', 'saturation', 0, 200, adjustValues.saturation);
-            html += createSlider('Temperature', 'temperature', -50, 50, adjustValues.temperature);
-            html += createSlider('Vignette', 'vignette', 0, 80, adjustValues.vignette);
-            html += `</div><button onclick="resetToOriginal()" class="mt-8 w-full bg-zinc-800 py-3 rounded-2xl text-sm font-medium">Reset All</button>`;
-            document.getElementById('tool-panel').innerHTML = html;
-            applyAdjustFilters();
-        }
-
-        function createSlider(label, key, min, max, value) {
-            return `
-                <div>
-                    <div class="flex justify-between text-sm mb-1.5"><span>\( {label}</span><span id=" \){key}-val" class="text-violet-400">${Math.round(value)}</span></div>
-                    <input type="range" min="\( {min}" max=" \){max}" value="\( {value}" oninput="updateAdjust(' \){key}', this.value)" class="w-full accent-violet-500">
-                </div>`;
-        }
-
-        function updateAdjust(key, val) {
-            adjustValues[key] = parseFloat(val);
-            document.getElementById(key + '-val').textContent = Math.round(val);
-            applyAdjustFilters();
-        }
-
-        function applyAdjustFilters() {
-            if (!currentImage) return;
-            ctx.save();
-            let filterStr = `brightness(\( {adjustValues.brightness}%) contrast( \){adjustValues.contrast}%) saturate(${adjustValues.saturation}%)`;
-            if (adjustValues.temperature !== 0) filterStr += ` hue-rotate(${adjustValues.temperature * 2}deg)`;
-            ctx.filter = filterStr;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
-            ctx.restore();
-
-            if (adjustValues.vignette > 0) {
-                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, Math.min(canvas.width, canvas.height)*0.4,
-                                                     canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)*0.75);
-                grad.addColorStop(0, 'transparent');
-                grad.addColorStop(1, `rgba(0,0,0,${adjustValues.vignette/110})`);
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            saveHistory();
-        }
-
-        function resetToOriginal() {
-            if (originalData) ctx.putImageData(originalData, 0, 0);
-            adjustValues = { brightness: 100, contrast: 100, saturation: 100, temperature: 0, vignette: 0, sharpness: 0 };
-            showAdjustPanel();
-        }
-
-        function downloadImage() {
-            const a = document.createElement('a');
-            a.download = 'kingtools-edit.png';
-            a.href = canvas.toDataURL('image/png');
-            a.click();
-        }
-
-        function finishEditing() {
-            alert("✅ Editing complete!\nYour image is ready.");
-        }
-
-        window.onload = () => loadSampleImage();
+        // Expose some functions to window for inline onclick handlers
+        window.triggerUpload = triggerUpload;
+        window.handleImageUpload = handleImageUpload;
+        window.undo = undo;
+        window.redo = redo;
+        window.downloadImage = downloadImage;
+        window.finishEditing = finishEditing;
     </script>
 </body>
 </html>
