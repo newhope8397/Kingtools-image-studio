@@ -4,29 +4,24 @@ let currentImage = null;
 let historyStack = [];
 let historyIndex = -1;
 
-// Global saveHistory - safe and used by all tools
+// Global saveHistory - safe for all tools
 window.saveHistory = function() {
     if (!canvas) return;
     
-    // Cap history at 20 entries to prevent memory issues on mobile
-    if (historyStack.length > 20) {
+    // Cap history at 20 entries for mobile memory safety
+    if (historyStack.length >= 20) {
         historyStack.shift();
-        historyIndex--;
+        if (historyIndex > 0) historyIndex--;
     }
     
     historyStack = historyStack.slice(0, historyIndex + 1);
-    historyStack.push(canvas.toDataURL('image/png', 0.92)); // slight quality compression
+    historyStack.push(canvas.toDataURL('image/png')); // lossless for editing
     historyIndex = historyStack.length - 1;
 };
 
 export function initEditor() {
     canvas = document.getElementById('main-canvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
-    
-    // Optional: better resize handling (keeps aspect ratio)
-    window.addEventListener('resize', () => {
-        // For now we keep original canvas size. Display scaling is done via CSS.
-    });
 }
 
 export function loadSampleImage() {
@@ -81,18 +76,20 @@ export function redo() {
 }
 
 function loadFromHistory() {
+    if (!historyStack[historyIndex]) return;
     const img = new Image();
     img.src = historyStack[historyIndex];
     img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // ensure clean redraw
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
+    img.onerror = () => console.warn('Failed to load history state');
 }
 
 export function downloadImage() {
     const a = document.createElement('a');
     a.download = `kingtools-edit-${new Date().toISOString().slice(0,10)}.png`;
-    a.href = canvas.toDataURL('image/png', 0.95);
+    a.href = canvas.toDataURL('image/png');
     a.click();
 }
 
@@ -135,7 +132,6 @@ export async function switchTool(n) {
 function cleanupCurrentTool() {
     const canvasEl = document.getElementById('main-canvas');
     if (canvasEl) canvasEl.style.cursor = 'default';
-    // Add tool-specific cleanup (e.g. remove event listeners) here in future
 }
 
 function showMagicPanel() {
