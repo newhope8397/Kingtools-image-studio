@@ -3,7 +3,13 @@ const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
 let originalImageData = null;
-let currentValues = { brightness: 100, contrast: 100, saturation: 100, hue: 0, temperature: 0 };
+let currentValues = { 
+    brightness: 100, 
+    contrast: 100, 
+    saturation: 100, 
+    hue: 0, 
+    temperature: 0 
+};
 
 export function showAdjustPanel() {
     const panel = document.getElementById('tool-panel');
@@ -19,23 +25,29 @@ export function showAdjustPanel() {
             ${createSlider('Hue', 'hue', -30, 30, 0)}
             ${createSlider('Temperature', 'temperature', -30, 30, 0)}
         </div>
-        <button onclick="resetAdjust()" class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
+        <button onclick="resetAdjust()" 
+                class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl transition">
             Reset All
         </button>
     `;
 
-    if (!originalImageData) originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    applyAdjustments(); // initial apply
+    if (!originalImageData) {
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+    applyAdjustments(); // live preview
 }
 
-function createSlider(label, key, min, max, value) {
+function createSlider(label, key, min, max, defaultValue) {
     return `
         <div>
             <div class="flex justify-between text-sm mb-1">
                 <span>${label}</span>
-                <span id="\( {key}-val"> \){value}</span>
+                <span id="\( {key}-val"> \){defaultValue}</span>
             </div>
-            <input type="range" min="\( {min}" max=" \){max}" value="${value}" 
+            <input type="range" 
+                   min="${min}" 
+                   max="${max}" 
+                   value="${defaultValue}" 
                    oninput="updateAdjust('${key}', this.value)" 
                    class="w-full accent-violet-500">
         </div>
@@ -50,7 +62,7 @@ window.updateAdjust = (key, value) => {
 
 function applyAdjustments() {
     if (!originalImageData) return;
-    
+
     const imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
     imageData.data.set(originalImageData.data);
     const data = imageData.data;
@@ -58,30 +70,31 @@ function applyAdjustments() {
     const brightness = currentValues.brightness / 100;
     const contrast = currentValues.contrast / 100;
     const saturation = currentValues.saturation / 100;
-    const hueShift = currentValues.hue;
     const tempShift = currentValues.temperature;
 
     for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
 
-        // Temperature
+        // Temperature tint
         r = Math.min(255, r + tempShift * 2);
         b = Math.min(255, b - tempShift * 2);
 
-        // Brightness & Contrast
+        // Brightness + Contrast
         r = ((r / 255 - 0.5) * contrast + 0.5) * brightness * 255;
         g = ((g / 255 - 0.5) * contrast + 0.5) * brightness * 255;
         b = ((b / 255 - 0.5) * contrast + 0.5) * brightness * 255;
 
-        // Saturation (simple)
+        // Saturation
         const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         r = gray + (r - gray) * saturation;
         g = gray + (g - gray) * saturation;
         b = gray + (b - gray) * saturation;
 
-        data[i] = Math.min(255, Math.max(0, r));
-        data[i+1] = Math.min(255, Math.max(0, g));
-        data[i+2] = Math.min(255, Math.max(0, b));
+        data[i]     = Math.min(255, Math.max(0, Math.round(r)));
+        data[i + 1] = Math.min(255, Math.max(0, Math.round(g)));
+        data[i + 2] = Math.min(255, Math.max(0, Math.round(b)));
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -93,7 +106,14 @@ window.resetAdjust = () => {
         ctx.putImageData(originalImageData, 0, 0);
         window.saveHistory();
     }
-    showAdjustPanel(); // refresh sliders
+    showAdjustPanel(); // refresh UI
 };
+
+// Auto-save when leaving the panel (optional improvement)
+window.addEventListener('beforeunload', () => {
+    if (document.getElementById('tool-panel').classList.contains('hidden') === false) {
+        window.saveHistory();
+    }
+}, { once: true });
 
 export { showAdjustPanel };
