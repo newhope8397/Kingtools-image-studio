@@ -26,7 +26,7 @@ export function showFiltersPanel() {
             <div onclick="applyFilter('fade')" class="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer">Fade</div>
         </div>
         <button onclick="resetToOriginalFilter()" 
-                class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
+                class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl transition">
             Reset to Original
         </button>
     `;
@@ -38,14 +38,22 @@ export function showFiltersPanel() {
 
 window.applyFilter = (type) => {
     if (!originalImageData) return;
-    
+
+    // Start from original for every filter (non-destructive)
     ctx.putImageData(originalImageData, 0, 0);
-    
+
+    if (type === 'none') {
+        window.saveHistory();
+        return;
+    }
+
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
     for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
 
         switch (type) {
             case 'grayscale':
@@ -85,14 +93,10 @@ window.applyFilter = (type) => {
                 b = b * 0.95 + 10;
                 break;
             case 'night':
-                r *= 0.6;
-                g *= 0.7;
-                b = Math.min(255, b * 1.4);
+                r *= 0.6; g *= 0.7; b = Math.min(255, b * 1.4);
                 break;
             case 'retro':
-                r = r * 1.1;
-                g *= 0.9;
-                b *= 0.75;
+                r = r * 1.1; g *= 0.9; b *= 0.75;
                 break;
             case 'fade':
                 r = r * 0.9 + 30;
@@ -101,9 +105,9 @@ window.applyFilter = (type) => {
                 break;
         }
 
-        data[i] = Math.min(255, Math.max(0, r));
-        data[i+1] = Math.min(255, Math.max(0, g));
-        data[i+2] = Math.min(255, Math.max(0, b));
+        data[i]     = Math.min(255, Math.max(0, Math.round(r)));
+        data[i + 1] = Math.min(255, Math.max(0, Math.round(g)));
+        data[i + 2] = Math.min(255, Math.max(0, Math.round(b)));
     }
 
     ctx.putImageData(imageData, 0, 0);
