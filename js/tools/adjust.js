@@ -109,11 +109,4 @@ window.resetAdjust = () => {
     showAdjustPanel(); // refresh UI
 };
 
-// Auto-save when leaving the panel (optional improvement)
-window.addEventListener('beforeunload', () => {
-    if (document.getElementById('tool-panel').classList.contains('hidden') === false) {
-        window.saveHistory();
-    }
-}, { once: true });
-
 export { showAdjustPanel };
