@@ -7,17 +7,25 @@ let historyIndex = -1;
 
 let currentTool = null;
 
+// Make saveHistory globally available safely
+window.saveHistory = function() {
+    if (!canvas) return;
+    historyStack = historyStack.slice(0, historyIndex + 1);
+    historyStack.push(canvas.toDataURL('image/png'));
+    historyIndex = historyStack.length - 1;
+};
+
 export function initEditor() {
     canvas = document.getElementById('main-canvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Make canvas responsive
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', () => {
+        if (currentImage) resizeCanvas();
+    });
 }
 
 function resizeCanvas() {
-    if (!currentImage) return;
-    // We keep original dimensions for editing, only display scales
+    // For now we keep original dimensions. Scaling is handled by CSS.
 }
 
 export function loadSampleImage() {
@@ -27,11 +35,12 @@ export function loadSampleImage() {
     img.onload = () => {
         currentImage = img;
         resetCanvasToImage();
-        saveHistory();
+        window.saveHistory();
     };
 }
 
 function resetCanvasToImage() {
+    if (!currentImage) return;
     canvas.width = currentImage.width;
     canvas.height = currentImage.height;
     ctx.drawImage(currentImage, 0, 0);
@@ -51,32 +60,26 @@ export function handleImageUpload(e) {
         img.onload = () => {
             currentImage = img;
             resetCanvasToImage();
-            saveHistory();
+            window.saveHistory();
         };
         img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-export function saveHistory() {
-    historyStack = historyStack.slice(0, historyIndex + 1);
-    historyStack.push(canvas.toDataURL('image/png'));
-    historyIndex = historyStack.length - 1;
-}
-
 export function undo() {
     if (historyIndex <= 0) return;
     historyIndex--;
-    const img = new Image();
-    img.src = historyStack[historyIndex];
-    img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
+    loadFromHistory();
 }
 
 export function redo() {
     if (historyIndex >= historyStack.length - 1) return;
     historyIndex++;
+    loadFromHistory();
+}
+
+function loadFromHistory() {
     const img = new Image();
     img.src = historyStack[historyIndex];
     img.onload = () => {
@@ -92,31 +95,47 @@ export function downloadImage() {
 }
 
 export function finishEditing() {
-    alert("✅ Editing complete!\nYour image is ready.");
+    alert("✅ Editing complete!\nYour image is ready.\n\n(You can download before finishing)");
 }
 
 // Tool Management
 export async function switchTool(n) {
+    // Deactivate all buttons
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('nav-' + n).classList.add('active');
+    document.getElementById(`nav-${n}`).classList.add('active');
 
     const panel = document.getElementById('tool-panel');
     panel.classList.remove('hidden');
 
-    // Clean up previous tool listeners
     cleanupCurrentTool();
 
-    if (n === 0) await showMagicPanel();
-    else if (n === 1) await import('./tools/filters.js').then(m => m.showFiltersPanel());
-    else if (n === 2) await import('./tools/effects.js').then(m => m.showEffectsPanel?.() || showBasicEffectsPanel());
-    else if (n === 3) await import('./tools/eraser.js').then(m => m.showEraserPanel());
-    else if (n === 4) await import('./tools/crop.js').then(m => m.showCropPanel());
-    else if (n === 5) await import('./tools/adjust.js').then(m => m.showAdjustPanel());
+    switch (n) {
+        case 0:
+            await showMagicPanel();
+            break;
+        case 1:
+            await import('./tools/filters.js').then(m => m.showFiltersPanel?.());
+            break;
+        case 2:
+            await import('./tools/effects.js').then(m => m.showEffectsPanel?.() || showBasicEffectsPanel());
+            break;
+        case 3:
+            await import('./tools/eraser.js').then(m => m.showEraserPanel());
+            break;
+        case 4:
+            await import('./tools/crop.js').then(m => m.showCropPanel?.());
+            break;
+        case 5:
+            await import('./tools/adjust.js').then(m => m.showAdjustPanel?.());
+            break;
+    }
 }
 
 function cleanupCurrentTool() {
+    // Remove eraser listeners if they exist
+    const canvas = document.getElementById('main-canvas');
     canvas.style.cursor = 'default';
-    // Add more cleanup if needed
+    // Add more tool-specific cleanup here later
 }
 
 function showMagicPanel() {
@@ -126,20 +145,25 @@ function showMagicPanel() {
             <div class="font-medium">Magic Studio</div>
             <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">🪄 Magic Edit</div>
-            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 p-4 rounded-3xl text-center cursor-pointer hover:bg-zinc-700">📏 Magic Expand</div>
-            <!-- Add more -->
+        <div class="grid grid-cols-2 gap-3 text-center">
+            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🪄 Magic Edit</div>
+            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">📏 Magic Expand</div>
+            <div onclick="magicAction('Object Remove')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🗑️ Remove Object</div>
+            <div onclick="magicAction('Background Change')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🌄 Change BG</div>
         </div>
     `;
 }
 
 window.magicAction = (action) => {
-    alert(`🔮 ${action} activated!\n\nFull AI integration coming soon.`);
-    saveHistory();
+    alert(`🔮 ${action} activated!\n\nFull AI features coming soon.`);
+    window.saveHistory();
 };
 
 window.closeToolPanel = () => {
-    document.getElementById('tool-panel').classList.add('hidden');
+    const panel = document.getElementById('tool-panel');
+    panel.classList.add('hidden');
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 };
+
+// Expose core functions
+export { saveHistory }; // still export for internal use if needed
