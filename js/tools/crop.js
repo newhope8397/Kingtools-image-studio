@@ -59,7 +59,7 @@ function getCanvasPos(e) {
 }
 
 window.setCropRatio = (rx, ry) => {
-    alert(`Ratio \( {rx}: \){ry} selected.\nVisual drag crop with ratio lock coming soon.`);
+    alert(`Ratio ( {rx}: ){ry} selected.Visual drag crop with ratio lock coming soon.`);
 };
 
 window.applyCrop = () => {
