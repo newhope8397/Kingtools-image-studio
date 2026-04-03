@@ -1,31 +1,32 @@
 // js/editor-core.js
 let canvas, ctx;
 let currentImage = null;
-let originalData = null;
 let historyStack = [];
 let historyIndex = -1;
 
-let currentTool = null;
-
-// Make saveHistory globally available safely
+// Global saveHistory - safe and used by all tools
 window.saveHistory = function() {
     if (!canvas) return;
+    
+    // Cap history at 20 entries to prevent memory issues on mobile
+    if (historyStack.length > 20) {
+        historyStack.shift();
+        historyIndex--;
+    }
+    
     historyStack = historyStack.slice(0, historyIndex + 1);
-    historyStack.push(canvas.toDataURL('image/png'));
+    historyStack.push(canvas.toDataURL('image/png', 0.92)); // slight quality compression
     historyIndex = historyStack.length - 1;
 };
 
 export function initEditor() {
     canvas = document.getElementById('main-canvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
-
+    
+    // Optional: better resize handling (keeps aspect ratio)
     window.addEventListener('resize', () => {
-        if (currentImage) resizeCanvas();
+        // For now we keep original canvas size. Display scaling is done via CSS.
     });
-}
-
-function resizeCanvas() {
-    // For now we keep original dimensions. Scaling is handled by CSS.
 }
 
 export function loadSampleImage() {
@@ -44,7 +45,6 @@ function resetCanvasToImage() {
     canvas.width = currentImage.width;
     canvas.height = currentImage.height;
     ctx.drawImage(currentImage, 0, 0);
-    originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
 export function triggerUpload() {
@@ -54,6 +54,7 @@ export function triggerUpload() {
 export function handleImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = ev => {
         const img = new Image();
@@ -83,24 +84,24 @@ function loadFromHistory() {
     const img = new Image();
     img.src = historyStack[historyIndex];
     img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // ensure clean redraw
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
 }
 
 export function downloadImage() {
     const a = document.createElement('a');
-    a.download = 'kingtools-edit.png';
-    a.href = canvas.toDataURL('image/png');
+    a.download = `kingtools-edit-${new Date().toISOString().slice(0,10)}.png`;
+    a.href = canvas.toDataURL('image/png', 0.95);
     a.click();
 }
 
 export function finishEditing() {
-    alert("✅ Editing complete!\nYour image is ready.\n\n(You can download before finishing)");
+    alert("✅ Editing complete!\n\nYour image is ready.\nDon't forget to download your work!");
 }
 
 // Tool Management
 export async function switchTool(n) {
-    // Deactivate all buttons
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`nav-${n}`).classList.add('active');
 
@@ -117,7 +118,7 @@ export async function switchTool(n) {
             await import('./tools/filters.js').then(m => m.showFiltersPanel?.());
             break;
         case 2:
-            await import('./tools/effects.js').then(m => m.showEffectsPanel?.() || showBasicEffectsPanel());
+            await import('./tools/effects.js').then(m => m.showEffectsPanel?.());
             break;
         case 3:
             await import('./tools/eraser.js').then(m => m.showEraserPanel());
@@ -132,10 +133,9 @@ export async function switchTool(n) {
 }
 
 function cleanupCurrentTool() {
-    // Remove eraser listeners if they exist
-    const canvas = document.getElementById('main-canvas');
-    canvas.style.cursor = 'default';
-    // Add more tool-specific cleanup here later
+    const canvasEl = document.getElementById('main-canvas');
+    if (canvasEl) canvasEl.style.cursor = 'default';
+    // Add tool-specific cleanup (e.g. remove event listeners) here in future
 }
 
 function showMagicPanel() {
@@ -145,11 +145,11 @@ function showMagicPanel() {
             <div class="font-medium">Magic Studio</div>
             <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
         </div>
-        <div class="grid grid-cols-2 gap-3 text-center">
-            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🪄 Magic Edit</div>
-            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">📏 Magic Expand</div>
-            <div onclick="magicAction('Object Remove')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🗑️ Remove Object</div>
-            <div onclick="magicAction('Background Change')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl cursor-pointer transition">🌄 Change BG</div>
+        <div class="grid grid-cols-2 gap-3">
+            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🪄 Magic Edit</div>
+            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">📏 Magic Expand</div>
+            <div onclick="magicAction('Remove Object')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🗑️ Remove Object</div>
+            <div onclick="magicAction('Change Background')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🌄 New Background</div>
         </div>
     `;
 }
@@ -165,5 +165,4 @@ window.closeToolPanel = () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 };
 
-// Expose core functions
-export { saveHistory }; // still export for internal use if needed
+export { switchTool };
