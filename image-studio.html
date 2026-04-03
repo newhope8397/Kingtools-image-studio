@@ -10,21 +10,21 @@
         body { font-family: 'Inter', system-ui, sans-serif; }
         
         .canvas-container {
-            background: 
-                linear-gradient(45deg, #222 25%, transparent 25%) -50px 0 / 40px 40px,
-                linear-gradient(45deg, transparent 75%, #222 75%) -50px 0 / 40px 40px,
-                #1a1a1a;
+            background: linear-gradient(45deg, #222 25%, transparent 25%) -50px 0 / 40px 40px,
+                        linear-gradient(45deg, transparent 75%, #222 75%) -50px 0 / 40px 40px,
+                        #1a1a1a;
             background-size: 40px 40px;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 12px;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6);
         }
         
         canvas { 
             width: 100% !important;
             height: auto !important;
-            max-height: 55vh;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+            max-height: 58vh;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.5);
             touch-action: none;
         }
         
@@ -34,10 +34,20 @@
             scrollbar-width: thin;
         }
         
-        .thumb { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; border: 2px solid transparent; }
         .nav-btn.active { 
             color: rgb(167 139 250) !important; 
             background-color: #27272a; 
+        }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: rgb(167 139 250);
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -48,14 +58,14 @@
         <div class="flex items-center gap-4">
             <a href="index.html" class="text-2xl">🏠</a>
             <div class="flex gap-3">
-                <button onclick="undo()" class="text-xl hover:text-violet-400 transition">↩</button>
-                <button onclick="redo()" class="text-xl hover:text-violet-400 transition">↪</button>
+                <button onclick="undo()" class="text-2xl hover:text-violet-400 transition">↩</button>
+                <button onclick="redo()" class="text-2xl hover:text-violet-400 transition">↪</button>
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="triggerUpload()" class="text-xl hover:text-violet-400">📤</button>
-            <button onclick="downloadImage()" class="text-xl hover:text-violet-400">↓</button>
-            <button onclick="finishEditing()" class="bg-violet-600 hover:bg-violet-700 px-5 py-1.5 rounded-full text-sm font-medium">Done</button>
+            <button onclick="triggerUpload()" class="text-2xl hover:text-violet-400">📤</button>
+            <button onclick="downloadImage()" class="text-2xl hover:text-violet-400">↓</button>
+            <button onclick="finishEditing()" class="bg-violet-600 hover:bg-violet-700 px-6 py-2 rounded-3xl text-sm font-semibold">Done</button>
         </div>
     </div>
 
@@ -84,26 +94,21 @@
 
     <script type="module">
         import { initEditor, loadSampleImage, triggerUpload, handleImageUpload, 
-                 saveHistory, undo, redo, downloadImage, finishEditing } from './js/editor-core.js';
-
-        // Global tool switching
-        window.switchTool = async (n) => {
-            const { switchTool } = await import('./js/editor-core.js');
-            switchTool(n);
-        };
+                 undo, redo, downloadImage, finishEditing, switchTool } from './js/editor-core.js';
 
         window.onload = () => {
             initEditor();
             loadSampleImage();
         };
 
-        // Expose some functions to window for inline onclick handlers
+        // Expose everything needed for inline onclicks
         window.triggerUpload = triggerUpload;
         window.handleImageUpload = handleImageUpload;
         window.undo = undo;
         window.redo = redo;
         window.downloadImage = downloadImage;
         window.finishEditing = finishEditing;
+        window.switchTool = switchTool;
     </script>
 </body>
 </html>
