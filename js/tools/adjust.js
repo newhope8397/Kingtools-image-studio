@@ -25,8 +25,7 @@ export function showAdjustPanel() {
             ${createSlider('Hue', 'hue', -30, 30, 0)}
             ${createSlider('Temperature', 'temperature', -30, 30, 0)}
         </div>
-        <button onclick="resetAdjust()" 
-                class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl transition">
+        <button onclick="resetAdjust()" class="mt-6 w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl transition">
             Reset All
         </button>
     `;
