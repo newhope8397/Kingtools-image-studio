@@ -34,7 +34,7 @@ export function showAdjustPanel() {
     if (!originalImageData) {
         originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     }
-    applyAdjustments(); // live preview
+    applyAdjustments();
 }
 
 function createSlider(label, key, min, max, defaultValue) {
@@ -73,20 +73,15 @@ function applyAdjustments() {
     const tempShift = currentValues.temperature;
 
     for (let i = 0; i < data.length; i += 4) {
-        let r = data[i];
-        let g = data[i + 1];
-        let b = data[i + 2];
+        let r = data[i], g = data[i+1], b = data[i+2];
 
-        // Temperature tint
         r = Math.min(255, r + tempShift * 2);
         b = Math.min(255, b - tempShift * 2);
 
-        // Brightness + Contrast
         r = ((r / 255 - 0.5) * contrast + 0.5) * brightness * 255;
         g = ((g / 255 - 0.5) * contrast + 0.5) * brightness * 255;
         b = ((b / 255 - 0.5) * contrast + 0.5) * brightness * 255;
 
-        // Saturation
         const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         r = gray + (r - gray) * saturation;
         g = gray + (g - gray) * saturation;
@@ -106,7 +101,7 @@ window.resetAdjust = () => {
         ctx.putImageData(originalImageData, 0, 0);
         window.saveHistory();
     }
-    showAdjustPanel(); // refresh UI
+    showAdjustPanel();
 };
 
 export { showAdjustPanel };
