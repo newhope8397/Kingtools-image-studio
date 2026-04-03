@@ -7,6 +7,8 @@ let eraseMode = 'erase'; // 'erase' or 'restore'
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
+let originalImageData = null;   // ← Important for Restore
+
 export function showEraserPanel() {
     const panel = document.getElementById('tool-panel');
     panel.innerHTML = `
@@ -16,9 +18,13 @@ export function showEraserPanel() {
         </div>
         <div class="flex gap-2 mb-4">
             <button onclick="toggleEraseMode('erase')" id="erase-btn"
-                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='erase'?'bg-violet-600':'bg-zinc-700'}">Erase</button>
+                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='erase'?'bg-violet-600 text-white':'bg-zinc-700'}">
+                Erase
+            </button>
             <button onclick="toggleEraseMode('restore')" id="restore-btn"
-                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='restore'?'bg-violet-600':'bg-zinc-700'}">Restore</button>
+                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='restore'?'bg-violet-600 text-white':'bg-zinc-700'}">
+                Restore
+            </button>
         </div>
         <div>
             <div class="flex justify-between text-sm mb-1">
@@ -34,10 +40,21 @@ export function showEraserPanel() {
 }
 
 function initEraserListeners() {
+    // Remove previous listeners to prevent duplicates
+    canvas.removeEventListener('pointerdown', startErase);
+    canvas.removeEventListener('pointermove', doErase);
+    canvas.removeEventListener('pointerup', stopErase);
+    canvas.removeEventListener('pointerleave', stopErase);
+
     canvas.addEventListener('pointerdown', startErase);
     canvas.addEventListener('pointermove', doErase);
     canvas.addEventListener('pointerup', stopErase);
     canvas.addEventListener('pointerleave', stopErase);
+
+    // Save original data when entering eraser (if not already saved)
+    if (!originalImageData) {
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
 }
 
 window.setEraserSize = (size) => {
@@ -47,7 +64,7 @@ window.setEraserSize = (size) => {
 
 window.toggleEraseMode = (mode) => {
     eraseMode = mode;
-    showEraserPanel(); // Refresh buttons
+    showEraserPanel(); // Refresh UI
 };
 
 function startErase(e) {
@@ -55,12 +72,12 @@ function startErase(e) {
     const pos = getCanvasPos(e);
     lastX = pos.x;
     lastY = pos.y;
-    doErase(e);
+    doErase(e); // draw immediately on tap
 }
 
 function stopErase() {
     if (isErasing) {
-        window.saveHistory(); // from editor-core
+        window.saveHistory?.();   // safe call
     }
     isErasing = false;
 }
@@ -69,13 +86,40 @@ function doErase(e) {
     if (!isErasing) return;
 
     const pos = getCanvasPos(e);
+
     ctx.save();
 
-    ctx.globalCompositeOperation = eraseMode === 'erase' ? 'destination-out' : 'source-over';
+    if (eraseMode === 'erase') {
+        // Normal erase
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = '#000'; // color doesn't matter for destination-out
+    } else {
+        // Restore mode - draw original pixels back
+        ctx.globalCompositeOperation = 'source-over';
+        
+        const tempCtx = document.createElement('canvas').getContext('2d');
+        tempCtx.canvas.width = canvas.width;
+        tempCtx.canvas.height = canvas.height;
+        tempCtx.putImageData(originalImageData, 0, 0);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, eraserSize / 2, 0, Math.PI * 2);
+        ctx.clip();
+
+        ctx.drawImage(tempCtx.canvas, 0, 0);
+        ctx.restore();
+
+        ctx.restore();
+        lastX = pos.x;
+        lastY = pos.y;
+        return; // skip the line drawing below
+    }
+
+    // Line drawing for erase mode
     ctx.lineWidth = eraserSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = eraseMode === 'erase' ? '#000' : '#fff'; // only for restore visual
 
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
