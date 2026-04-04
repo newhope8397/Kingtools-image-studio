@@ -7,15 +7,12 @@ let historyIndex = -1;
 // Global saveHistory - safe for all tools
 window.saveHistory = function() {
     if (!canvas) return;
-    
-    // Cap history at 20 entries for mobile memory safety
     if (historyStack.length >= 20) {
         historyStack.shift();
         if (historyIndex > 0) historyIndex--;
     }
-    
     historyStack = historyStack.slice(0, historyIndex + 1);
-    historyStack.push(canvas.toDataURL('image/png')); // lossless for editing
+    historyStack.push(canvas.toDataURL('image/png'));
     historyIndex = historyStack.length - 1;
 };
 
@@ -49,7 +46,6 @@ export function triggerUpload() {
 export function handleImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-    
     const reader = new FileReader();
     reader.onload = ev => {
         const img = new Image();
@@ -83,7 +79,6 @@ function loadFromHistory() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
-    img.onerror = () => console.warn('Failed to load history state');
 }
 
 export function downloadImage() {
@@ -97,63 +92,33 @@ export function finishEditing() {
     alert("✅ Editing complete!\n\nYour image is ready.\nDon't forget to download your work!");
 }
 
-// Tool Management
-export async function switchTool(n) {
+// ==================== SIMPLE & RELIABLE TOOL SWITCHER ====================
+export function switchTool(n) {
+    // Highlight active button
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`nav-${n}`).classList.add('active');
+    const activeBtn = document.getElementById(`nav-${n}`);
+    if (activeBtn) activeBtn.classList.add('active');
 
+    // Show panel
     const panel = document.getElementById('tool-panel');
     panel.classList.remove('hidden');
 
-    cleanupCurrentTool();
+    // Call the correct tool (all tools now expose to window)
+    const toolMap = {
+        0: window.showMagicPanel,
+        1: window.showFiltersPanel,
+        2: window.showEffectsPanel,
+        3: window.showEraserPanel,
+        4: window.showCropPanel,
+        5: window.showAdjustPanel
+    };
 
-    switch (n) {
-        case 0:
-            await showMagicPanel();
-            break;
-        case 1:
-            await import('./tools/filters.js').then(m => m.showFiltersPanel?.());
-            break;
-        case 2:
-            await import('./tools/effects.js').then(m => m.showEffectsPanel?.());
-            break;
-        case 3:
-            await import('./tools/eraser.js').then(m => m.showEraserPanel());
-            break;
-        case 4:
-            await import('./tools/crop.js').then(m => m.showCropPanel?.());
-            break;
-        case 5:
-            await import('./tools/adjust.js').then(m => m.showAdjustPanel?.());
-            break;
+    if (toolMap[n]) {
+        toolMap[n]();
+    } else {
+        alert("Tool coming soon!");
     }
 }
-
-function cleanupCurrentTool() {
-    const canvasEl = document.getElementById('main-canvas');
-    if (canvasEl) canvasEl.style.cursor = 'default';
-}
-
-function showMagicPanel() {
-    const panel = document.getElementById('tool-panel');
-    panel.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <div class="font-medium">Magic Studio</div>
-            <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🪄 Magic Edit</div>
-            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">📏 Magic Expand</div>
-            <div onclick="magicAction('Remove Object')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🗑️ Remove Object</div>
-            <div onclick="magicAction('Change Background')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer transition">🌄 New Background</div>
-        </div>
-    `;
-}
-
-window.magicAction = (action) => {
-    alert(`🔮 ${action} activated!\n\nFull AI features coming soon.`);
-    window.saveHistory();
-};
 
 window.closeToolPanel = () => {
     const panel = document.getElementById('tool-panel');
