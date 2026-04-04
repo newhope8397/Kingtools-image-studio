@@ -85,4 +85,5 @@ window.resetCrop = () => {
     closeToolPanel();
 };
 
+window.showCropPanel = showCropPanel;  
 export { showCropPanel };
