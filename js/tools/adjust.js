@@ -39,7 +39,7 @@ function createSlider(label, key, min, max, defaultValue) {
         <div>
             <div class="flex justify-between text-sm mb-1">
                 <span>${label}</span>
-                <span id="\( {key}-val"> \){defaultValue}</span>
+                <span id="${key}-val"> ${defaultValue}</span>
             </div>
             <input type="range" min="\( {min}" max=" \){max}" value="${defaultValue}" 
                    oninput="updateAdjust('${key}', this.value)" class="w-full accent-violet-500">
