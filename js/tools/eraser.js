@@ -142,5 +142,5 @@ function getCanvasPos(e) {
     };
 }
 
-window.showEffectsPanel = showEffectsPanel;   // change name per file
+window.showEraserPanel = showEraserPanel;   // change name per file
 export { showEraserPanel };
