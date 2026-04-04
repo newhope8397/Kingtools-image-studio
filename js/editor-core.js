@@ -4,7 +4,7 @@ let currentImage = null;
 let historyStack = [];
 let historyIndex = -1;
 
-// Global saveHistory - safe for all tools
+// Global saveHistory
 window.saveHistory = function() {
     if (!canvas) return;
     if (historyStack.length >= 20) {
@@ -92,8 +92,8 @@ export function finishEditing() {
     alert("✅ Editing complete!\n\nYour image is ready.\nDon't forget to download your work!");
 }
 
-// ==================== SIMPLE & RELIABLE TOOL SWITCHER ====================
-export function switchTool(n) {
+// ==================== TOOL SWITCHER (Dynamic Import) ====================
+export async function switchTool(n) {
     // Highlight active button
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     const activeBtn = document.getElementById(`nav-${n}`);
@@ -103,22 +103,60 @@ export function switchTool(n) {
     const panel = document.getElementById('tool-panel');
     panel.classList.remove('hidden');
 
-    // Call the correct tool (all tools now expose to window)
-    const toolMap = {
-        0: window.showMagicPanel,
-        1: window.showFiltersPanel,
-        2: window.showEffectsPanel,
-        3: window.showEraserPanel,
-        4: window.showCropPanel,
-        5: window.showAdjustPanel
-    };
-
-    if (toolMap[n]) {
-        toolMap[n]();
-    } else {
-        alert("Tool coming soon!");
+    try {
+        switch (n) {
+            case 0: // Magic
+                window.showMagicPanel();
+                break;
+            case 1: // Filters
+                const filters = await import('./tools/filters.js');
+                filters.showFiltersPanel();
+                break;
+            case 2: // Effects
+                const effects = await import('./tools/effects.js');
+                effects.showEffectsPanel();
+                break;
+            case 3: // Eraser
+                const eraser = await import('./tools/eraser.js');
+                eraser.showEraserPanel();
+                break;
+            case 4: // Crop
+                const crop = await import('./tools/crop.js');
+                crop.showCropPanel();
+                break;
+            case 5: // Adjust
+                const adjust = await import('./tools/adjust.js');
+                adjust.showAdjustPanel();
+                break;
+        }
+    } catch (err) {
+        console.error("Tool failed to load", err);
+        alert("Tool failed to load. Check console.");
     }
 }
+
+// Magic panel (placeholder)
+function showMagicPanel() {
+    const panel = document.getElementById('tool-panel');
+    panel.innerHTML = `
+        <div class="flex justify-between items-center mb-4">
+            <div class="font-medium">Magic Studio</div>
+            <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div onclick="magicAction('Magic Edit')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer">🪄 Magic Edit</div>
+            <div onclick="magicAction('Magic Expand')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer">📏 Magic Expand</div>
+            <div onclick="magicAction('Remove Object')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer">🗑️ Remove Object</div>
+            <div onclick="magicAction('Change Background')" class="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl text-center cursor-pointer">🌄 New Background</div>
+        </div>
+    `;
+}
+window.showMagicPanel = showMagicPanel;
+
+window.magicAction = (action) => {
+    alert(`🔮 ${action} activated!\n\nFull AI features coming soon.`);
+    window.saveHistory();
+};
 
 window.closeToolPanel = () => {
     const panel = document.getElementById('tool-panel');
