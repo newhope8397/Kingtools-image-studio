@@ -121,4 +121,6 @@ window.resetToOriginalFilter = () => {
     }
 };
 
+window.showFiltersPanel = showFiltersPanel;   // change name per file
+
 export { showFiltersPanel };
