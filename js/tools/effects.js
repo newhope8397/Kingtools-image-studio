@@ -102,4 +102,5 @@ window.resetToOriginalEffect = () => {
     }
 };
 
+window.showEffectsPanel = showEffectsPanel;   // change name per file
 export { showEffectsPanel };
