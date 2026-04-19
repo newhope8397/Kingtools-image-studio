@@ -1,6 +1,7 @@
 // js/tools/filters.js
-const canvas = document.getElementById('main-canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
+import { getEditor } from '../editor-core.js';
+
+const { canvas, ctx } = getEditor();
 
 let originalImageData = null;
 
