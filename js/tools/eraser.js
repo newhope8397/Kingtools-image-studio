@@ -4,9 +4,9 @@ let lastX = 0, lastY = 0;
 let eraserSize = 35;
 let eraseMode = 'erase'; // 'erase' or 'restore'
 
-const canvas = document.getElementById('main-canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
+import { getEditor } from '../editor-core.js';
 
+const { canvas, ctx } = getEditor();
 let originalImageData = null;   // ← Important for Restore
 
 export function showEraserPanel() {
