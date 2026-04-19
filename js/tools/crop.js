@@ -1,89 +1,97 @@
-// js/tools/crop.js
-const canvas = document.getElementById('main-canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
+import { getEditor, saveHistory } from '../editor-core.js';
+
+let isCropping = false;
+let startX = 0, startY = 0;
+let currentX = 0, currentY = 0;
 
 export function showCropPanel() {
     const panel = document.getElementById('tool-panel');
+
     panel.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <div class="font-medium">Crop Tool</div>
-            <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
+        <div class="flex justify-between mb-4">
+            <span>Crop</span>
+            <button onclick="closeToolPanel()">×</button>
         </div>
-        <div class="grid grid-cols-3 gap-2 mb-6 text-sm">
-            <button onclick="setCropRatio(1,1)" class="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl">1:1</button>
-            <button onclick="setCropRatio(4,5)" class="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl">4:5</button>
-            <button onclick="setCropRatio(16,9)" class="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl">16:9</button>
-        </div>
-        <div class="text-zinc-400 text-xs mb-4">
-            Tap & drag on image to select crop area (basic version)
-        </div>
-        <button onclick="applyCrop()" class="w-full py-3 mb-3 bg-violet-600 hover:bg-violet-700 rounded-2xl text-sm font-medium">
+
+        <button onclick="applyCrop()" class="w-full bg-violet-600 py-3 rounded-xl">
             Apply Crop
-        </button>
-        <button onclick="resetCrop()" class="w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
-            Cancel
         </button>
     `;
 
-    initCropListeners();
+    initCrop();
 }
 
-let startX = 0, startY = 0, isCropping = false;
+function initCrop() {
+    const { canvas } = getEditor();
 
-function initCropListeners() {
     canvas.addEventListener('pointerdown', startCrop);
+    canvas.addEventListener('pointermove', drawCrop);
     canvas.addEventListener('pointerup', endCrop);
 }
 
 function startCrop(e) {
+    const pos = getPos(e);
+
     isCropping = true;
-    const pos = getCanvasPos(e);
     startX = pos.x;
     startY = pos.y;
 }
 
-function endCrop(e) {
+function drawCrop(e) {
     if (!isCropping) return;
-    isCropping = false;
-    applyCrop();
+
+    const { ctx, canvas } = getEditor();
+    const pos = getPos(e);
+
+    currentX = pos.x;
+    currentY = pos.y;
+
+    redrawCanvas();
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6]);
+
+    ctx.strokeRect(
+        startX,
+        startY,
+        currentX - startX,
+        currentY - startY
+    );
 }
 
-function getCanvasPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY
+function endCrop() {
+    isCropping = false;
+}
+
+function redrawCanvas() {
+    const { ctx, state } = getEditor();
+
+    const img = new Image();
+    img.src = state.history[state.historyIndex];
+
+    img.onload = () => {
+        ctx.clearRect(0,0,img.width,img.height);
+        ctx.drawImage(img,0,0);
     };
 }
 
-window.setCropRatio = (rx, ry) => {
-    alert(`Ratio ${rx}:${ry}  selected.Visual drag crop with ratio lock coming soon.`);
+window.applyCrop = function () {
+    const { canvas, ctx } = getEditor();
+
+    let x = Math.min(startX, currentX);
+    let y = Math.min(startY, currentY);
+    let w = Math.abs(currentX - startX);
+    let h = Math.abs(currentY - startY);
+
+    if (w < 5 || h < 5) return;
+
+    const imageData = ctx.getImageData(x, y, w, h);
+
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.putImageData(imageData, 0, 0);
+
+    saveHistory();
 };
-
-window.applyCrop = () => {
-    const newW = Math.floor(canvas.width * 0.82);
-    const newH = Math.floor(canvas.height * 0.82);
-    const temp = document.createElement('canvas');
-    temp.width = newW; 
-    temp.height = newH;
-    const tctx = temp.getContext('2d');
-    tctx.drawImage(canvas, 
-        (canvas.width - newW)/2, (canvas.height - newH)/2, 
-        newW, newH, 
-        0, 0, newW, newH);
-
-    canvas.width = newW;
-    canvas.height = newH;
-    ctx.drawImage(temp, 0, 0);
-    window.saveHistory();
-};
-
-window.resetCrop = () => {
-    window.undo();
-    closeToolPanel();
-};
-
-window.showCropPanel = showCropPanel;  
-export { showCropPanel };
