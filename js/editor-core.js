@@ -78,3 +78,9 @@ export function downloadImage() {
     a.href = canvas.toDataURL();
     a.click();
 }
+
+window.downloadImage = downloadImage;
+window.undo = undo;
+window.redo = redo;
+window.triggerUpload = triggerUpload;
+window.handleImageUpload = handleImageUpload;
