@@ -18,6 +18,40 @@ export function initEditor() {
     ctx = canvas.getContext('2d', { willReadFrequently: true });
 }
 
+// ================= UPLOAD =================
+export function triggerUpload() {
+    const input = document.getElementById("image-upload");
+
+    if (!input) {
+        console.error("Upload input not found");
+        return;
+    }
+
+    input.click();
+}
+
+export function handleImageUpload(e) {
+    const file = e.target.files[0];
+
+    if (!file || !file.type.startsWith("image/")) {
+        alert("Please upload a valid image");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+        const img = new Image();
+
+        img.onload = () => {
+            loadImage(img); // 🔥 use core system
+        };
+
+        img.src = ev.target.result;
+    };
+
+    reader.readAsDataURL(file);
+}
 // ================= IMAGE LOAD =================
 export function loadImage(img) {
     state.image = img;
