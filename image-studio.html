@@ -78,7 +78,7 @@
     </div>
 
     <!-- Tool Panel -->
-    <div id="tool-panel" class="tool-panel bg-zinc-900 border-t border-zinc-800 p-4 hidden">
+    <div id="tool-panel" class="tool-panel bg-zinc-900 border-t border-zinc-800 p-4 hidden"></div>
     <!-- Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 z-50">
         <div class="flex text-xs font-medium">
@@ -92,12 +92,11 @@
     </div>
 
     <script type="module">
-        import { initEditor, loadSampleImage, triggerUpload, handleImageUpload, 
+        import { initEditor, triggerUpload, handleImageUpload, 
                  undo, redo, downloadImage, finishEditing, switchTool } from './js/editor-core.js';
 
         window.onload = () => {
     initEditor();
-    loadSampleImage();
 
     // 🔥 CONNECT BUTTONS PROPERLY
     const uploadBtn = document.getElementById("upload-btn");
