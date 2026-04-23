@@ -96,9 +96,15 @@
                  undo, redo, downloadImage, finishEditing, switchTool } from './js/editor-core.js';
 
         window.onload = () => {
-            initEditor();
-            loadSampleImage();
-        };
+    initEditor();
+    loadSampleImage();
+
+    // 🔥 CONNECT BUTTONS PROPERLY
+    const uploadBtn = document.getElementById("upload-btn");
+    if (uploadBtn) {
+        uploadBtn.addEventListener("click", triggerUpload);
+    }
+};
 
         // Expose everything needed for inline onclicks
         window.triggerUpload = triggerUpload;
