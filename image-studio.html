@@ -93,17 +93,10 @@
 
     <script type="module">
         import { initEditor, triggerUpload, handleImageUpload, 
-                 undo, redo, downloadImage, finishEditing, switchTool } from './js/editor-core.js';
+                 undo, redo, downloadImage } from './js/editor-core.js';
 
         window.onload = () => {
     initEditor();
-
-    // 🔥 CONNECT BUTTONS PROPERLY
-    const uploadBtn = document.getElementById("upload-btn");
-    if (uploadBtn) {
-        uploadBtn.addEventListener("click", triggerUpload);
-    }
-};
 
         // Expose everything needed for inline onclicks
         window.triggerUpload = triggerUpload;
