@@ -112,9 +112,30 @@ export function downloadImage() {
     a.href = canvas.toDataURL();
     a.click();
 }
+// ================= UI FUNCTIONS =================
+
+export function finishEditing() {
+    alert("✅ Editing complete!");
+}
+
+export function switchTool(n) {
+    console.log("Tool selected:", n);
+
+    const panel = document.getElementById("tool-panel");
+
+    if (!panel) return;
+
+    panel.classList.remove("hidden");
+
+    panel.innerHTML = `<div style="padding:20px">
+        Tool ${n} opened (UI coming next)
+    </div>`;
+}
 
 window.downloadImage = downloadImage;
 window.undo = undo;
 window.redo = redo;
 window.triggerUpload = triggerUpload;
 window.handleImageUpload = handleImageUpload;
+window.finishEditing = finishEditing;
+window.switchTool = switchTool;
