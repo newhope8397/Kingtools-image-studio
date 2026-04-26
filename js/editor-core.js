@@ -118,18 +118,47 @@ export function finishEditing() {
     alert("✅ Editing complete!");
 }
 
-export function switchTool(n) {
-    console.log("Tool selected:", n);
-
+export async function switchTool(n) {
     const panel = document.getElementById("tool-panel");
-
     if (!panel) return;
 
     panel.classList.remove("hidden");
 
-    panel.innerHTML = `<div style="padding:20px">
-        Tool ${n} opened (UI coming next)
-    </div>`;
+    // Highlight active button
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById(`nav-${n}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    try {
+        switch (n) {
+            case 0:
+                panel.innerHTML = `<div style="padding:20px">✨ Magic tools coming soon</div>`;
+                break;
+
+            case 1:
+                (await import('./tools/filters.js')).showFiltersPanel();
+                break;
+
+            case 2:
+                (await import('./tools/effects.js')).showEffectsPanel();
+                break;
+
+            case 3:
+                (await import('./tools/eraser.js')).showEraserPanel();
+                break;
+
+            case 4:
+                (await import('./tools/crop.js')).showCropPanel();
+                break;
+
+            case 5:
+                (await import('./tools/adjust.js')).showAdjustPanel();
+                break;
+        }
+    } catch (err) {
+        console.error(err);
+        panel.innerHTML = `<div style="padding:20px">⚠️ Tool failed to load</div>`;
+    }
 }
 
 window.downloadImage = downloadImage;
