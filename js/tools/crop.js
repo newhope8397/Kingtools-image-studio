@@ -1,20 +1,32 @@
-import { getEditor, saveHistory } from '../editor-core.js';
+// js/tools/crop.js
+
+import { getEditor } from '../editor-core.js';
 
 let isCropping = false;
 let startX = 0, startY = 0;
-let currentX = 0, currentY = 0;
+let endX = 0, endY = 0;
 
 export function showCropPanel() {
     const panel = document.getElementById('tool-panel');
 
     panel.innerHTML = `
-        <div class="flex justify-between mb-4">
-            <span>Crop</span>
-            <button onclick="closeToolPanel()">×</button>
+        <div class="flex justify-between items-center mb-4">
+            <div class="font-medium">Crop Tool</div>
+            <button onclick="closeCrop()" class="text-2xl text-zinc-400">×</button>
         </div>
 
-        <button onclick="applyCrop()" class="w-full bg-violet-600 py-3 rounded-xl">
+        <div class="text-xs text-zinc-400 mb-4">
+            Drag on image to select crop area
+        </div>
+
+        <button onclick="applyCrop()" 
+            class="w-full py-3 mb-3 bg-violet-600 hover:bg-violet-700 rounded-2xl text-sm font-medium">
             Apply Crop
+        </button>
+
+        <button onclick="cancelCrop()" 
+            class="w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
+            Cancel
         </button>
     `;
 
@@ -24,15 +36,27 @@ export function showCropPanel() {
 function initCrop() {
     const { canvas } = getEditor();
 
+    canvas.style.cursor = "crosshair";
+
     canvas.addEventListener('pointerdown', startCrop);
     canvas.addEventListener('pointermove', drawCrop);
     canvas.addEventListener('pointerup', endCrop);
 }
 
+function getPos(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+        y: (e.clientY - rect.top) * (canvas.height / rect.height)
+    };
+}
+
 function startCrop(e) {
-    const pos = getPos(e);
+    const { canvas } = getEditor();
 
     isCropping = true;
+    const pos = getPos(e, canvas);
+
     startX = pos.x;
     startY = pos.y;
 }
@@ -40,58 +64,84 @@ function startCrop(e) {
 function drawCrop(e) {
     if (!isCropping) return;
 
-    const { ctx, canvas } = getEditor();
-    const pos = getPos(e);
+    const { canvas, ctx, state } = getEditor();
+    const pos = getPos(e, canvas);
 
-    currentX = pos.x;
-    currentY = pos.y;
+    endX = pos.x;
+    endY = pos.y;
 
-    redrawCanvas();
+    // redraw original image
+    const img = new Image();
+    img.src = state.history[state.historyIndex];
 
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6]);
+    img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
 
-    ctx.strokeRect(
-        startX,
-        startY,
-        currentX - startX,
-        currentY - startY
-    );
+        // draw selection box
+        ctx.strokeStyle = "#a78bfa";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6]);
+
+        ctx.strokeRect(
+            startX,
+            startY,
+            endX - startX,
+            endY - startY
+        );
+    };
 }
 
 function endCrop() {
     isCropping = false;
 }
 
-function redrawCanvas() {
-    const { ctx, state } = getEditor();
+window.applyCrop = () => {
+    const { canvas, ctx, saveHistory } = getEditor();
 
-    const img = new Image();
-    img.src = state.history[state.historyIndex];
+    const x = Math.min(startX, endX);
+    const y = Math.min(startY, endY);
+    const w = Math.abs(endX - startX);
+    const h = Math.abs(endY - startY);
 
-    img.onload = () => {
-        ctx.clearRect(0,0,img.width,img.height);
-        ctx.drawImage(img,0,0);
-    };
-}
+    if (w < 10 || h < 10) return;
 
-window.applyCrop = function () {
-    const { canvas, ctx } = getEditor();
+    const temp = document.createElement("canvas");
+    temp.width = w;
+    temp.height = h;
 
-    let x = Math.min(startX, currentX);
-    let y = Math.min(startY, currentY);
-    let w = Math.abs(currentX - startX);
-    let h = Math.abs(currentY - startY);
-
-    if (w < 5 || h < 5) return;
-
-    const imageData = ctx.getImageData(x, y, w, h);
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
 
     canvas.width = w;
     canvas.height = h;
-
-    ctx.putImageData(imageData, 0, 0);
+    ctx.drawImage(temp, 0, 0);
 
     saveHistory();
+    cleanup();
 };
+
+window.cancelCrop = () => {
+    cleanup();
+};
+
+window.closeCrop = () => {
+    cleanup();
+};
+
+function cleanup() {
+    const { canvas } = getEditor();
+
+    canvas.style.cursor = "default";
+
+    canvas.removeEventListener('pointerdown', startCrop);
+    canvas.removeEventListener('pointermove', drawCrop);
+    canvas.removeEventListener('pointerup', endCrop);
+
+    const panel = document.getElementById("tool-panel");
+    panel.classList.remove("active");
+
+    setTimeout(() => {
+        panel.classList.add("hidden");
+    }, 300);
+}
