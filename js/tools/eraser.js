@@ -1,146 +1,28 @@
-// js/tools/eraser.js
+import { getEditor, saveHistory } from '../editor-core.js';
+
 let isErasing = false;
-let lastX = 0, lastY = 0;
-let eraserSize = 35;
-let eraseMode = 'erase'; // 'erase' or 'restore'
-
-import { getEditor } from '../editor-core.js';
-
-const { canvas, ctx } = getEditor();
-let originalImageData = null;   // ← Important for Restore
 
 export function showEraserPanel() {
     const panel = document.getElementById('tool-panel');
-    panel.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <div class="font-medium">Pixel Eraser</div>
-            <button onclick="closeToolPanel()" class="text-2xl text-zinc-400">×</button>
-        </div>
-        <div class="flex gap-2 mb-4">
-            <button onclick="toggleEraseMode('erase')" id="erase-btn"
-                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='erase'?'bg-violet-600 text-white':'bg-zinc-700'}">
-                Erase
-            </button>
-            <button onclick="toggleEraseMode('restore')" id="restore-btn"
-                class="flex-1 py-2.5 rounded-xl text-sm font-medium ${eraseMode==='restore'?'bg-violet-600 text-white':'bg-zinc-700'}">
-                Restore
-            </button>
-        </div>
-        <div>
-            <div class="flex justify-between text-sm mb-1">
-                <span>Brush Size</span>
-                <span id="size-val">${eraserSize}</span>
-            </div>
-            <input type="range" min="8" max="120" value="${eraserSize}" 
-                   oninput="setEraserSize(this.value)" class="w-full accent-violet-500">
-        </div>
-    `;
+    panel.innerHTML = `<div>Drag on image to erase</div>`;
 
-    initEraserListeners();
-}
+    const { canvas, ctx } = getEditor();
 
-function initEraserListeners() {
-    // Remove previous listeners to prevent duplicates
-    canvas.removeEventListener('pointerdown', startErase);
-    canvas.removeEventListener('pointermove', doErase);
-    canvas.removeEventListener('pointerup', stopErase);
-    canvas.removeEventListener('pointerleave', stopErase);
+    canvas.onpointerdown = () => isErasing = true;
+    canvas.onpointerup = () => {
+        isErasing = false;
+        saveHistory();
+    };
 
-    canvas.addEventListener('pointerdown', startErase);
-    canvas.addEventListener('pointermove', doErase);
-    canvas.addEventListener('pointerup', stopErase);
-    canvas.addEventListener('pointerleave', stopErase);
+    canvas.onpointermove = (e) => {
+        if (!isErasing) return;
 
-    // Save original data when entering eraser (if not already saved)
-    if (!originalImageData) {
-        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    }
-}
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-window.setEraserSize = (size) => {
-    eraserSize = parseInt(size);
-    document.getElementById('size-val').textContent = eraserSize;
-};
-
-window.toggleEraseMode = (mode) => {
-    eraseMode = mode;
-    showEraserPanel(); // Refresh UI
-};
-
-function startErase(e) {
-    isErasing = true;
-    const pos = getCanvasPos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-    doErase(e); // draw immediately on tap
-}
-
-function stopErase() {
-    if (isErasing) {
-        window.saveHistory?.();   // safe call
-    }
-    isErasing = false;
-}
-
-function doErase(e) {
-    if (!isErasing) return;
-
-    const pos = getCanvasPos(e);
-
-    ctx.save();
-
-    if (eraseMode === 'erase') {
-        // Normal erase
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.strokeStyle = '#000'; // color doesn't matter for destination-out
-    } else {
-        // Restore mode - draw original pixels back
-        ctx.globalCompositeOperation = 'source-over';
-        
-        const tempCtx = document.createElement('canvas').getContext('2d');
-        tempCtx.canvas.width = canvas.width;
-        tempCtx.canvas.height = canvas.height;
-        tempCtx.putImageData(originalImageData, 0, 0);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, eraserSize / 2, 0, Math.PI * 2);
-        ctx.clip();
-
-        ctx.drawImage(tempCtx.canvas, 0, 0);
-        ctx.restore();
-
-        ctx.restore();
-        lastX = pos.x;
-        lastY = pos.y;
-        return; // skip the line drawing below
-    }
-
-    // Line drawing for erase mode
-    ctx.lineWidth = eraserSize;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-
-    ctx.restore();
-
-    lastX = pos.x;
-    lastY = pos.y;
-}
-
-function getCanvasPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY
+        ctx.clearRect(x - 10, y - 10, 20, 20);
     };
 }
 
-window.showEraserPanel = showEraserPanel;   // change name per file
-export { showEraserPanel };
+window.showEraserPanel = showEraserPanel;
