@@ -109,20 +109,29 @@
     </div>
 
 <script type="module">
-import { 
+import {
     initEditor,
-    triggerUpload
+    triggerUpload,
+    handleImageUpload,
+    undo,
+    redo,
+    downloadImage,
+    finishEditing,
+    switchTool
 } from './js/editor-core.js';
 
 window.onload = () => {
     initEditor();
-
-    const uploadBtn = document.getElementById("upload-btn");
-
-    if (uploadBtn) {
-        uploadBtn.addEventListener("click", triggerUpload);
-    }
 };
+
+// expose for buttons
+window.triggerUpload = triggerUpload;
+window.handleImageUpload = handleImageUpload;
+window.undo = undo;
+window.redo = redo;
+window.downloadImage = downloadImage;
+window.finishEditing = finishEditing;
+window.switchTool = switchTool;
 </script>
 </body>
 </html>
