@@ -28,11 +28,28 @@
             touch-action: none;
         }
         
-        .tool-panel {
-            max-height: 42vh;
-            overflow-y: auto;
-            scrollbar-width: thin;
-        }
+.tool-panel {
+    position: fixed;
+    bottom: 56px; /* above bottom nav */
+    left: 0;
+    right: 0;
+
+    max-height: 45vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    background: #18181b;
+    border-top: 1px solid #27272a;
+
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 40;
+}
+
+/* ACTIVE STATE (slide up like Canva) */
+.tool-panel.active {
+    transform: translateY(0);
+}
         
         .nav-btn.active { 
             color: rgb(167 139 250) !important; 
