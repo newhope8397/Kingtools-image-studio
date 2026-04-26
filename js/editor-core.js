@@ -122,7 +122,8 @@ export async function switchTool(n) {
     const panel = document.getElementById("tool-panel");
     if (!panel) return;
 
-    panel.classList.remove("hidden");
+panel.classList.remove("hidden");
+panel.classList.add("active");
 
     // Highlight active button
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
