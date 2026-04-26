@@ -91,11 +91,21 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initEditor } from './js/editor-core.js';
+<script type="module">
+import { 
+    initEditor,
+    triggerUpload
+} from './js/editor-core.js';
 
-        window.onload = () => {
+window.onload = () => {
     initEditor();
-    </script>
+
+    const uploadBtn = document.getElementById("upload-btn");
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener("click", triggerUpload);
+    }
+};
+</script>
 </body>
 </html>
