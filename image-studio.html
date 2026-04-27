@@ -124,7 +124,7 @@ window.onload = () => {
     initEditor();
 };
 
-// expose for buttons
+// expose to buttons
 window.triggerUpload = triggerUpload;
 window.handleImageUpload = handleImageUpload;
 window.undo = undo;
@@ -132,6 +132,11 @@ window.redo = redo;
 window.downloadImage = downloadImage;
 window.finishEditing = finishEditing;
 window.switchTool = switchTool;
+
+// 🔥 error catcher
+window.onerror = function(message, source, lineno) {
+    alert("ERROR: " + message + " (Line " + lineno + ")");
+};
 </script>
 </body>
 </html>
