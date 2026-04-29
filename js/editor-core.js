@@ -119,7 +119,6 @@ export function finishEditing() {
 }
 
 export async function switchTool(n) {
-export async function switchTool(n) {
     const panel = document.getElementById("tool-panel");
     if (!panel) return;
 
