@@ -8,7 +8,6 @@ let endX = 0, endY = 0;
 
 export function showCropPanel() {
     const panel = document.getElementById('tool-panel');
-
     panel.innerHTML = `
         <div class="flex justify-between items-center mb-4">
             <div class="font-medium">Crop Tool</div>
@@ -53,6 +52,7 @@ function getPos(e, canvas) {
 
 function startCrop(e) {
     const { canvas } = getEditor();
+    canvas.setPointerCapture(e.pointerId);
 
     isCropping = true;
     const pos = getPos(e, canvas);
@@ -79,21 +79,54 @@ function drawCrop(e) {
         ctx.drawImage(img, 0, 0);
 
         // draw selection box
-        ctx.strokeStyle = "#a78bfa";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6]);
+const x = Math.min(startX, endX);
+const y = Math.min(startY, endY);
+const w = Math.abs(endX - startX);
+const h = Math.abs(endY - startY);
 
-        ctx.strokeRect(
-            startX,
-            startY,
-            endX - startX,
-            endY - startY
-        );
+// draw dark overlay
+ctx.fillStyle = "rgba(0,0,0,0.55)";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// reveal crop area
+ctx.clearRect(x, y, w, h);
+
+// redraw image inside crop area
+ctx.drawImage(
+    img,
+    x, y, w, h,
+    x, y, w, h
+);
+
+// crop border
+ctx.strokeStyle = "#a78bfa";
+ctx.lineWidth = 2;
+ctx.setLineDash([6]);
+
+ctx.strokeRect(x, y, w, h);
+        
+ctx.setLineDash([]);
+
+for (let i = 1; i < 3; i++) {
+
+    // vertical lines
+    ctx.beginPath();
+    ctx.moveTo(x + (w / 3) * i, y);
+    ctx.lineTo(x + (w / 3) * i, y + h);
+    ctx.stroke();
+
+    // horizontal lines
+    ctx.beginPath();
+    ctx.moveTo(x, y + (h / 3) * i);
+    ctx.lineTo(x + w, y + (h / 3) * i);
+    ctx.stroke();
+}
     };
 }
 
 function endCrop() {
     isCropping = false;
+    canvas.releasePointerCapture(e.pointerId);
 }
 
 window.applyCrop = () => {
@@ -104,7 +137,10 @@ window.applyCrop = () => {
     const w = Math.abs(endX - startX);
     const h = Math.abs(endY - startY);
 
-    if (w < 10 || h < 10) return;
+ if (w < 30 || h < 30) {
+    alert("Crop area too small");
+    return;
+ }
 
     const temp = document.createElement("canvas");
     temp.width = w;
