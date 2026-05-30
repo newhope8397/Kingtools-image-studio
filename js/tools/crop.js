@@ -1,6 +1,6 @@
 // js/tools/crop.js
 
-import { getEditor } from '../editor-core.js';
+import { getEditor, saveHistory } from '../editor-core.js';
 
 let isCropping = false;
 let startX = 0, startY = 0;
@@ -56,9 +56,12 @@ function startCrop(e) {
 
     isCropping = true;
     const pos = getPos(e, canvas);
-
+    
     startX = pos.x;
     startY = pos.y;
+
+    endX = pos.x;
+    endY = pos.y;
 }
 
 function drawCrop(e) {
@@ -124,13 +127,18 @@ for (let i = 1; i < 3; i++) {
     };
 }
 
-function endCrop() {
+function endCrop(e) {
+    const { canvas } = getEditor();
+
     isCropping = false;
-    canvas.releasePointerCapture(e.pointerId);
+
+    if (e.pointerId !== undefined) {
+        canvas.releasePointerCapture(e.pointerId);
+    }
 }
 
 window.applyCrop = () => {
-    const { canvas, ctx, saveHistory } = getEditor();
+    const { canvas, ctx } = getEditor();
 
     const x = Math.min(startX, endX);
     const y = Math.min(startY, endY);
