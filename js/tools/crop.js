@@ -101,7 +101,10 @@ function drawCrop(e) {
 
     const { canvas, ctx, state } = getEditor();
     const pos = getPos(e, canvas);
-    
+    canvas.addEventListener(
+    "pointermove",
+    hoverCrop
+);
     endX = pos.x;
     endY = pos.y;
 
@@ -231,6 +234,7 @@ if (w < 30 || h < 30) {
 
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
+    cleanup();
 startX = 0;
 startY = 0;
 endX = 0;
@@ -249,7 +253,10 @@ cleanup();
 };
 
 window.closeCrop = () => {
-    cleanup();
+    const panel =
+        document.getElementById("tool-panel");
+
+    panel.classList.remove("active");
 };
 
 function cleanup() {
@@ -264,15 +271,11 @@ function cleanup() {
     const panel = document.getElementById("tool-panel");
     panel.classList.remove("active");
 
-    setTimeout(() => {
-        panel.classList.add("hidden");
-    }, 300);
 }
 
 function drawHandles(x, y, w, h) {
 
     const { ctx } = getEditor();
-    updateCursor(pos)
     const handles = [
 
         [x, y],
@@ -336,4 +339,14 @@ function getHandleAt(x, y) {
     }
 
     return null;
+}
+function hoverCrop(e) {
+
+    if (isCropping) return;
+
+    const { canvas } = getEditor();
+
+    const pos = getPos(e, canvas);
+
+    updateCursor(pos);
 }
