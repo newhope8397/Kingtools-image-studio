@@ -5,7 +5,9 @@ import { getEditor, saveHistory,logTool } from '../editor-core.js';
 let isCropping = false;
 let startX = 0, startY = 0;
 let endX = 0, endY = 0;
+let activeHandle = null;
 
+const HANDLE_SIZE = 14;
 export function showCropPanel() {
     logTool("Crop panel opened");
     const panel = document.getElementById('tool-panel');
@@ -128,6 +130,7 @@ for (let i = 1; i < 3; i++) {
 }
     };
 }
+drawHandles(x, y, w, h);
 
 function endCrop(e) {
     const { canvas } = getEditor();
@@ -140,7 +143,6 @@ function endCrop(e) {
 }
 
 window.applyCrop = () => {
-    logTool("Crop applied");
     const { canvas, ctx } = getEditor();
 
     const x = Math.min(startX, endX);
@@ -148,10 +150,11 @@ window.applyCrop = () => {
     const w = Math.abs(endX - startX);
     const h = Math.abs(endY - startY);
 
- if (w < 30 || h < 30) {
+if (w < 30 || h < 30) {
+    logTool("Crop rejected: area too small");
     alert("Crop area too small");
     return;
- }
+}
 
     const temp = document.createElement("canvas");
     temp.width = w;
@@ -165,6 +168,7 @@ window.applyCrop = () => {
     ctx.drawImage(temp, 0, 0);
 
     saveHistory();
+    logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
     cleanup();
 };
 
@@ -192,4 +196,40 @@ function cleanup() {
     setTimeout(() => {
         panel.classList.add("hidden");
     }, 300);
+}
+
+function drawHandles(x, y, w, h) {
+
+    const { ctx } = getEditor();
+
+    const handles = [
+
+        [x, y],
+
+        [x + w, y],
+
+        [x, y + h],
+
+        [x + w, y + h]
+    ];
+
+    handles.forEach(([hx, hy]) => {
+
+        ctx.beginPath();
+
+        ctx.arc(
+            hx,
+            hy,
+            HANDLE_SIZE / 2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        ctx.strokeStyle = "#a78bfa";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
 }
