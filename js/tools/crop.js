@@ -1,6 +1,6 @@
 // js/tools/crop.js
 
-import { getEditor, saveHistory } from '../editor-core.js';
+import { getEditor, saveHistory,logTool } from '../editor-core.js';
 
 let isCropping = false;
 let startX = 0, startY = 0;
