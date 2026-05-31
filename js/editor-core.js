@@ -166,7 +166,15 @@ export async function switchTool(n) {
         panel.innerHTML = `<div style="padding:20px">⚠️ Tool failed to load</div>`;
     }
 }
+export function logTool(msg) {
 
+    const time =
+        new Date().toLocaleTimeString();
+
+    console.log(
+        `[KingTools ${time}] ${msg}`
+    );
+}
 window.downloadImage = downloadImage;
 window.undo = undo;
 window.redo = redo;
