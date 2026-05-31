@@ -31,9 +31,6 @@ export function showCropPanel() {
             Cancel
         </button>
     `;
-canvas.removeEventListener('pointerdown', startCrop);
-canvas.removeEventListener('pointermove', drawCrop);
-canvas.removeEventListener('pointerup', endCrop);
 
     initCrop();
 }
@@ -42,6 +39,9 @@ function initCrop() {
     const { canvas } = getEditor();
 
     canvas.style.cursor = "crosshair";
+    canvas.removeEventListener('pointerdown', startCrop);
+    canvas.removeEventListener('pointermove', drawCrop);
+    canvas.removeEventListener('pointerup', endCrop);
 
     canvas.addEventListener('pointerdown', startCrop);
     canvas.addEventListener('pointermove', drawCrop);
@@ -60,6 +60,14 @@ function startCrop(e) {
     logTool("Crop selection started");
     const { canvas } = getEditor();
     canvas.setPointerCapture(e.pointerId);
+    activeHandle =
+    getHandleAt(pos.x, pos.y);
+
+if (activeHandle) {
+
+    isCropping = true;
+    return;
+}
 
     isCropping = true;
     const pos = getPos(e, canvas);
@@ -79,6 +87,37 @@ function drawCrop(e) {
 
     endX = pos.x;
     endY = pos.y;
+
+if (activeHandle === "tl") {
+
+    startX = pos.x;
+    startY = pos.y;
+
+}
+else if (activeHandle === "tr") {
+
+    endX = pos.x;
+    startY = pos.y;
+
+}
+else if (activeHandle === "bl") {
+
+    startX = pos.x;
+    endY = pos.y;
+
+}
+else if (activeHandle === "br") {
+
+    endX = pos.x;
+    endY = pos.y;
+
+}
+else {
+
+    endX = pos.x;
+    endY = pos.y;
+
+}
 
     // redraw original image
     const img = new Image();
@@ -140,6 +179,8 @@ function endCrop(e) {
     const { canvas } = getEditor();
 
     isCropping = false;
+
+    activeHandle = null;
 
     if (e.pointerId !== undefined) {
         canvas.releasePointerCapture(e.pointerId);
@@ -235,4 +276,31 @@ function drawHandles(x, y, w, h) {
         ctx.lineWidth = 2;
         ctx.stroke();
     });
+}
+
+function getHandleAt(x, y) {
+
+    const handles = {
+        tl: [startX, startY],
+        tr: [endX, startY],
+        bl: [startX, endY],
+        br: [endX, endY]
+    };
+
+    for (const key in handles) {
+
+        const [hx, hy] = handles[key];
+
+        const dx = x - hx;
+        const dy = y - hy;
+
+        if (
+            Math.sqrt(dx * dx + dy * dy)
+            < HANDLE_SIZE
+        ) {
+            return key;
+        }
+    }
+
+    return null;
 }
