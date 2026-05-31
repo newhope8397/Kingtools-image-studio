@@ -152,7 +152,20 @@ window.finishEditing = finishEditing;
 window.switchTool = switchTool;
 
 // 🔥 error catcher
-window.onerror = function(
+   window.showError = function(msg) {
+
+    const box = document.getElementById("debug-box");
+
+    if (!box) return;
+
+    box.style.display = "block";
+
+    box.innerHTML =
+        `<b>⚠ Error Detected</b><br>${msg}`;
+
+    console.error(msg);
+};
+    window.onerror = function(
     message,
     source,
     lineno,
@@ -169,19 +182,6 @@ window.onerror = function(
     );
 
     return true;
-};
-    window.showError = function(msg) {
-
-    const box = document.getElementById("debug-box");
-
-    if (!box) return;
-
-    box.style.display = "block";
-
-    box.innerHTML =
-        `<b>⚠ Error Detected</b><br>${msg}`;
-
-    console.error(msg);
 };
     window.addEventListener(
     "unhandledrejection",
