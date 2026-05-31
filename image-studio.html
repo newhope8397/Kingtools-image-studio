@@ -107,6 +107,24 @@
             <button onclick="switchTool(5)" id="nav-5" class="nav-btn flex-1 py-3 flex flex-col items-center gap-1"><span class="text-2xl">📊</span><span>Adjust</span></button>
         </div>
     </div>
+    
+   <div id="debug-box"
+style="
+position:fixed;
+top:70px;
+left:10px;
+right:10px;
+background:#991b1b;
+color:white;
+padding:10px;
+border-radius:12px;
+display:none;
+z-index:9999;
+font-size:12px;
+max-height:200px;
+overflow:auto;
+">
+    </div>
 
 <script type="module">
 import {
@@ -136,6 +154,19 @@ window.switchTool = switchTool;
 // 🔥 error catcher
 window.onerror = function(message, source, lineno) {
     alert("ERROR: " + message + " (Line " + lineno + ")");
+};
+    window.showError = function(msg) {
+
+    const box = document.getElementById("debug-box");
+
+    if (!box) return;
+
+    box.style.display = "block";
+
+    box.innerHTML =
+        `<b>⚠ Error Detected</b><br>${msg}`;
+
+    console.error(msg);
 };
 </script>
 </body>
