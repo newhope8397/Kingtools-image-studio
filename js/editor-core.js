@@ -32,6 +32,11 @@ export function triggerUpload() {
 
 export function handleImageUpload(e) {
     const file = e.target.files[0];
+    alert(
+    `${file.name}
+${file.type}
+${Math.round(file.size / 1024 / 1024)} MB`
+);
 
     if (!file || !file.type.startsWith("image/")) {
         alert("Please upload a valid image");
