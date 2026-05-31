@@ -52,8 +52,12 @@ function updateCursor(pos) {
     const { canvas } = getEditor();
 
     const handle = getHandleAt(
-        pos.x,
-        pos.y
+        if (
+    startX === endX &&
+    startY === endY
+    ) {
+    return null;
+    }
     );
 
     if (handle) {
@@ -101,7 +105,8 @@ function drawCrop(e) {
 
     const { canvas, ctx, state } = getEditor();
     const pos = getPos(e, canvas);
-
+    updateCursor(pos)
+    
     endX = pos.x;
     endY = pos.y;
 
@@ -239,18 +244,17 @@ activeHandle = null;
 };
 
 window.cancelCrop = () => {
-    logTool("Crop cancelled");
-    cleanup();
 startX = 0;
 startY = 0;
 endX = 0;
 endY = 0;
 activeHandle = null;
+logTool("Crop cancelled");
+cleanup();
 };
 
 window.closeCrop = () => {
     cleanup();
-    panel.classList.remove("active");
 };
 
 function cleanup() {
