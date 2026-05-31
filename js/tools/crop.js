@@ -31,6 +31,9 @@ export function showCropPanel() {
             Cancel
         </button>
     `;
+canvas.removeEventListener('pointerdown', startCrop);
+canvas.removeEventListener('pointermove', drawCrop);
+canvas.removeEventListener('pointerup', endCrop);
 
     initCrop();
 }
@@ -128,9 +131,10 @@ for (let i = 1; i < 3; i++) {
     ctx.lineTo(x + w, y + (h / 3) * i);
     ctx.stroke();
 }
+    drawHandles(x, y, w, h);
     };
 }
-drawHandles(x, y, w, h);
+
 
 function endCrop(e) {
     const { canvas } = getEditor();
@@ -169,7 +173,6 @@ if (w < 30 || h < 30) {
 
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
-    cleanup();
 };
 
 window.cancelCrop = () => {
