@@ -31,9 +31,15 @@ export function triggerUpload() {
 }
 
 export function handleImageUpload(e) {
-    const file = e.target.files[0];
-    alert(
-    `${file.name}
+    const file = e.target.files?.[0];
+
+if (!file) {
+    showError("No file selected");
+    return;
+}
+
+alert(
+`${file.name}
 ${file.type}
 ${Math.round(file.size / 1024 / 1024)} MB`
 );
