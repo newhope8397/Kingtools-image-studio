@@ -7,6 +7,7 @@ let startX = 0, startY = 0;
 let endX = 0, endY = 0;
 
 export function showCropPanel() {
+    logTool("Crop panel opened");
     const panel = document.getElementById('tool-panel');
     panel.innerHTML = `
         <div class="flex justify-between items-center mb-4">
@@ -51,6 +52,7 @@ function getPos(e, canvas) {
 }
 
 function startCrop(e) {
+    logTool("Crop selection started");
     const { canvas } = getEditor();
     canvas.setPointerCapture(e.pointerId);
 
@@ -138,6 +140,7 @@ function endCrop(e) {
 }
 
 window.applyCrop = () => {
+    logTool("Crop applied");
     const { canvas, ctx } = getEditor();
 
     const x = Math.min(startX, endX);
@@ -166,6 +169,7 @@ window.applyCrop = () => {
 };
 
 window.cancelCrop = () => {
+    logTool("Crop cancelled");
     cleanup();
 };
 
