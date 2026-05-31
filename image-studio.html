@@ -161,7 +161,8 @@ window.switchTool = switchTool;
     box.style.display = "block";
 
     box.innerHTML =
-        `<b>⚠ Error Detected</b><br>${msg}`;
+    `<div>${new Date().toLocaleTimeString()} - ${msg}</div>`
+    + box.innerHTML;
 
     console.error(msg);
 };
