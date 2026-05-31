@@ -152,8 +152,23 @@ window.finishEditing = finishEditing;
 window.switchTool = switchTool;
 
 // 🔥 error catcher
-window.onerror = function(message, source, lineno) {
-    alert("ERROR: " + message + " (Line " + lineno + ")");
+window.onerror = function(
+    message,
+    source,
+    lineno,
+    colno,
+    error
+) {
+
+    showError(
+        `
+        Message: ${message}<br>
+        Line: ${lineno}<br>
+        File: ${source}
+        `
+    );
+
+    return true;
 };
     window.showError = function(msg) {
 
@@ -168,6 +183,16 @@ window.onerror = function(message, source, lineno) {
 
     console.error(msg);
 };
+    window.addEventListener(
+    "unhandledrejection",
+    (event) => {
+
+        showError(
+            "Promise Error: " +
+            event.reason
+        );
+    }
+);
 </script>
 </body>
 </html>
