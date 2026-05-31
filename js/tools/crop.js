@@ -52,12 +52,8 @@ function updateCursor(pos) {
     const { canvas } = getEditor();
 
     const handle = getHandleAt(
-        if (
-    startX === endX &&
-    startY === endY
-    ) {
-    return null;
-    }
+        pos.x,
+        pos.y
     );
 
     if (handle) {
@@ -105,7 +101,6 @@ function drawCrop(e) {
 
     const { canvas, ctx, state } = getEditor();
     const pos = getPos(e, canvas);
-    updateCursor(pos)
     
     endX = pos.x;
     endY = pos.y;
@@ -277,7 +272,7 @@ function cleanup() {
 function drawHandles(x, y, w, h) {
 
     const { ctx } = getEditor();
-
+    updateCursor(pos)
     const handles = [
 
         [x, y],
@@ -311,6 +306,12 @@ function drawHandles(x, y, w, h) {
 }
 
 function getHandleAt(x, y) {
+    if (
+    startX === endX &&
+    startY === endY
+) {
+    return null;
+    }
 
     const handles = {
         tl: [startX, startY],
