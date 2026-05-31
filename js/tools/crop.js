@@ -47,6 +47,22 @@ function initCrop() {
     canvas.addEventListener('pointermove', drawCrop);
     canvas.addEventListener('pointerup', endCrop);
 }
+function updateCursor(pos) {
+
+    const { canvas } = getEditor();
+
+    const handle = getHandleAt(
+        pos.x,
+        pos.y
+    );
+
+    if (handle) {
+        canvas.style.cursor = "nwse-resize";
+    }
+    else {
+        canvas.style.cursor = "crosshair";
+    }
+}
 
 function getPos(e, canvas) {
     const rect = canvas.getBoundingClientRect();
@@ -59,9 +75,11 @@ function getPos(e, canvas) {
 function startCrop(e) {
     logTool("Crop selection started");
     const { canvas } = getEditor();
-    canvas.setPointerCapture(e.pointerId);
+    const pos = getPos(e, canvas);
+    
     activeHandle =
     getHandleAt(pos.x, pos.y);
+    canvas.setPointerCapture(e.pointerId);
 
 if (activeHandle) {
 
@@ -70,7 +88,6 @@ if (activeHandle) {
 }
 
     isCropping = true;
-    const pos = getPos(e, canvas);
     
     startX = pos.x;
     startY = pos.y;
@@ -214,15 +231,26 @@ if (w < 30 || h < 30) {
 
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
+startX = 0;
+startY = 0;
+endX = 0;
+endY = 0;
+activeHandle = null;
 };
 
 window.cancelCrop = () => {
     logTool("Crop cancelled");
     cleanup();
+startX = 0;
+startY = 0;
+endX = 0;
+endY = 0;
+activeHandle = null;
 };
 
 window.closeCrop = () => {
     cleanup();
+    panel.classList.remove("active");
 };
 
 function cleanup() {
