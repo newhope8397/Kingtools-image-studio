@@ -6,8 +6,10 @@ let isCropping = false;
 let startX = 0, startY = 0;
 let endX = 0, endY = 0;
 let activeHandle = null;
+let sourceImage = null;
 
 const HANDLE_SIZE = 14;
+
 export function showCropPanel() {
 
     logTool("Crop panel opened");
@@ -17,7 +19,7 @@ export function showCropPanel() {
         "cancelCrop()",
         "applyCrop()"
     );
-    let sourceImage = null;
+   
     sourceImage = new Image();
 sourceImage.src =
     getEditor().state.history[
@@ -98,7 +100,7 @@ if (activeHandle) {
 function drawCrop(e) {
     if (!isCropping) return;
 
-    const { canvas, ctx, state } = getEditor();
+    const { canvas, ctx } = getEditor();
     const pos = getPos(e, canvas);
 
     endX = pos.x;
@@ -134,14 +136,11 @@ else {
     endY = pos.y;
 
 }
-
-    // redraw original image
-    const img = new Image();
-    img.src = state.history[state.historyIndex];
+    
 
     img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(sourceImage, 0, 0);
 
         // draw selection box
 const x = Math.min(startX, endX);
@@ -158,7 +157,7 @@ ctx.clearRect(x, y, w, h);
 
 // redraw image inside crop area
 ctx.drawImage(
-    img,
+    sourceImage,
     x, y, w, h,
     x, y, w, h
 );
@@ -222,7 +221,7 @@ if (w < 30 || h < 30) {
     temp.height = h;
 
     const tctx = temp.getContext("2d");
-    tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+    tctx.drawImage(sourceImage, x, y, w, h, 0, 0, w, h);
 
     canvas.width = w;
     canvas.height = h;
@@ -230,35 +229,19 @@ if (w < 30 || h < 30) {
 
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
+    resetCrop();
     cleanup();
-startX = 0;
-startY = 0;
-endX = 0;
-endY = 0;
-activeHandle = null;
 };
 
 window.cancelCrop = () => {
-startX = 0;
-startY = 0;
-endX = 0;
-endY = 0;
-activeHandle = null;
 logTool("Crop cancelled");
-cleanup();
 resetCrop();    
+cleanup();   
 };
 
 window.closeCrop = () => {
-
-    cleanup();
-
-    startX = 0;
-    startY = 0;
-    endX = 0;
-    endY = 0;
-    activeHandle = null;
     resetCrop();
+    cleanup();
 };
 
 function cleanup() {
@@ -360,4 +343,5 @@ function resetCrop() {
     endX = 0;
     endY = 0;
     activeHandle = null;
+    sourceImage = null;
 }
