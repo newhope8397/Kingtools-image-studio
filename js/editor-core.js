@@ -75,6 +75,35 @@ export function loadImage(img) {
 
     saveHistory();
 }
+export function setToolBar(
+    title,
+    leftAction,
+    rightAction
+) {
+
+    const panel =
+        document.getElementById(
+            "tool-panel"
+        );
+
+    panel.innerHTML = `
+        <div class="flex items-center justify-between px-4 py-3">
+
+            <button onclick="${leftAction}">
+                ✖
+            </button>
+
+            <span>${title}</span>
+
+            <button onclick="${rightAction}">
+                ✔
+            </button>
+
+        </div>
+    `;
+
+    panel.classList.add("active");
+}
 
 // ================= HISTORY =================
 export function saveHistory() {
