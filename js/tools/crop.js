@@ -30,6 +30,7 @@ sourceImage.src =
     getEditor().state.history[
         getEditor().state.historyIndex
     ];
+}
 
 function initCrop() {
     const { canvas } = getEditor();
@@ -189,7 +190,6 @@ for (let i = 1; i < 3; i++) {
     ctx.stroke();
 }
     drawHandles(x, y, w, h);
-    };
 }
 
 
@@ -289,6 +289,7 @@ window.closeCrop = () => {
 };
 
 function cleanup() {
+    isCropping = false;
     const { canvas } = getEditor();
 
     canvas.style.cursor = "default";
@@ -366,8 +367,8 @@ function getHandleAt(x, y) {
         const dy = y - hy;
 
         if (
-            Math.sqrt(dx * dx + dy * dy)
-            < HANDLE_SIZE
+        (dx * dx + dy * dy)< HANDLE_SIZE*
+            HANDLE_SIZE
         ) {
             return key;
         }
