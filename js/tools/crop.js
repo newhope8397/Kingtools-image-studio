@@ -26,6 +26,7 @@ sourceImage.onload = () => {
     initCrop();
 };
     sourceImage.onerror = () => {
+    logTool("Crop image load failed");
     alert("Failed to load image");
 };
 
