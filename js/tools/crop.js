@@ -42,10 +42,12 @@ function initCrop() {
     canvas.removeEventListener('pointerdown', startCrop);
     canvas.removeEventListener('pointermove', drawCrop);
     canvas.removeEventListener('pointerup', endCrop);
+    canvas.removeEventListener('pointermove', hoverCrop);
 
     canvas.addEventListener('pointerdown', startCrop);
     canvas.addEventListener('pointermove', drawCrop);
     canvas.addEventListener('pointerup', endCrop);
+    canvas.addEventListener("pointermove",hoverCrop);
 }
 function updateCursor(pos) {
 
@@ -101,10 +103,7 @@ function drawCrop(e) {
 
     const { canvas, ctx, state } = getEditor();
     const pos = getPos(e, canvas);
-    canvas.addEventListener(
-    "pointermove",
-    hoverCrop
-);
+
     endX = pos.x;
     endY = pos.y;
 
