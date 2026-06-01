@@ -296,25 +296,25 @@ function drawHandles(x, y, w, h) {
 }
 
 function getHandleAt(x, y) {
+
     if (
-    startX === endX &&
-    startY === endY
-) {
-    return null;
+        startX === endX &&
+        startY === endY
+    ) {
+        return null;
     }
 
-    const handles = {
-const x = Math.min(startX, endX);
-const y = Math.min(startY, endY);
-const w = Math.abs(endX - startX);
-const h = Math.abs(endY - startY);
+    const left = Math.min(startX, endX);
+    const top = Math.min(startY, endY);
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
 
-const handles = {
-    tl: [x, y],
-    tr: [x + w, y],
-    bl: [x, y + h],
-    br: [x + w, y + h]
-};
+    const handles = {
+        tl: [left, top],
+        tr: [left + width, top],
+        bl: [left, top + height],
+        br: [left + width, top + height]
+    };
 
     for (const key in handles) {
 
