@@ -86,7 +86,9 @@ function startCrop(e) {
     
     activeHandle =
     getHandleAt(pos.x, pos.y);
+    if (e.pointerId !== undefined) {
     canvas.setPointerCapture(e.pointerId);
+    }
 
 if (activeHandle) {
 
@@ -239,8 +241,6 @@ if (w < 30 || h < 30) {
 
 window.cancelCrop = () => {
 
-    const { canvas, ctx } = getEditor();
-
     restoreImage();
     logTool("Crop cancelled");
 
@@ -250,8 +250,6 @@ window.cancelCrop = () => {
 };
 
 window.closeCrop = () => {
-    
-    const { canvas, ctx } = getEditor();
 
     restoreImage();
     
