@@ -98,6 +98,7 @@ if (activeHandle) {
 }
 
 function drawCrop(e) {
+    if (!sourceImage) return;
     if (!isCropping) return;
 
     const { canvas, ctx } = getEditor();
@@ -138,7 +139,7 @@ else {
 }
     
 
-    img.onload = () => {
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(sourceImage, 0, 0);
 
@@ -303,11 +304,17 @@ function getHandleAt(x, y) {
     }
 
     const handles = {
-        tl: [startX, startY],
-        tr: [endX, startY],
-        bl: [startX, endY],
-        br: [endX, endY]
-    };
+const x = Math.min(startX, endX);
+const y = Math.min(startY, endY);
+const w = Math.abs(endX - startX);
+const h = Math.abs(endY - startY);
+
+const handles = {
+    tl: [x, y],
+    tr: [x + w, y],
+    bl: [x, y + h],
+    br: [x + w, y + h]
+};
 
     for (const key in handles) {
 
