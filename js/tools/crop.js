@@ -110,8 +110,6 @@ function drawCrop(e) {
     const { canvas, ctx } = getEditor();
     const pos = getPos(e, canvas);
 
-    endX = pos.x;
-    endY = pos.y;
 
 if (activeHandle === "tl") {
 
@@ -198,10 +196,8 @@ for (let i = 1; i < 3; i++) {
 
 function endCrop(e) {
     const { canvas } = getEditor();
-    activeHandle = getHandleAt(pos.x, pos.y);
 
     isCropping = false;
-
 
     if (e.pointerId !== undefined) {
         canvas.releasePointerCapture(e.pointerId);
@@ -389,8 +385,6 @@ function restoreImage() {
     ctx.drawImage(
         sourceImage,
         0,
-        0,
-        sourceImage.width,
-        sourceImage.height
+        0
     );
 }
