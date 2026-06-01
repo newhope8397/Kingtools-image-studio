@@ -198,7 +198,6 @@ function endCrop(e) {
 
     isCropping = false;
 
-    activeHandle = null;
 
     if (e.pointerId !== undefined) {
         canvas.releasePointerCapture(e.pointerId);
@@ -206,6 +205,7 @@ function endCrop(e) {
 }
 
 window.applyCrop = () => {
+    if (!sourceImage) return;
     const { canvas, ctx } = getEditor();
 
     const x = Math.min(startX, endX);
@@ -256,6 +256,7 @@ window.cancelCrop = () => {
         );
     }
 
+    restoreImage();
     logTool("Crop cancelled");
 
     resetCrop();
@@ -282,6 +283,8 @@ window.closeCrop = () => {
             0
         );
     }
+    restoreImage();
+    
     logTool("Crop closed");
     resetCrop();
     cleanup();
@@ -386,6 +389,7 @@ function hoverCrop(e) {
 
     updateCursor(pos);
 }
+
 function resetCrop() {
 
     startX = 0;
@@ -394,4 +398,25 @@ function resetCrop() {
     endY = 0;
     activeHandle = null;
     sourceImage = null;
+}
+function restoreImage() {
+
+    if (!sourceImage) return;
+
+    const { canvas, ctx } = getEditor();
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    ctx.drawImage(
+        sourceImage,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 }
