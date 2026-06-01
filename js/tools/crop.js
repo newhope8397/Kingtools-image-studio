@@ -21,13 +21,15 @@ export function showCropPanel() {
     );
    
     sourceImage = new Image();
+
+sourceImage.onload = () => {
+    initCrop();
+};
+
 sourceImage.src =
     getEditor().state.history[
         getEditor().state.historyIndex
     ];
-
-    initCrop();
-}
 
 function initCrop() {
     const { canvas } = getEditor();
