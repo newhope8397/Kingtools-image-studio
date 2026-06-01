@@ -25,6 +25,9 @@ export function showCropPanel() {
 sourceImage.onload = () => {
     initCrop();
 };
+    sourceImage.onerror = () => {
+    alert("Failed to load image");
+};
 
 sourceImage.src =
     getEditor().state.history[
@@ -195,6 +198,7 @@ for (let i = 1; i < 3; i++) {
 
 function endCrop(e) {
     const { canvas } = getEditor();
+    activeHandle = getHandleAt(pos.x, pos.y);
 
     isCropping = false;
 
@@ -202,6 +206,7 @@ function endCrop(e) {
     if (e.pointerId !== undefined) {
         canvas.releasePointerCapture(e.pointerId);
     }
+    activeHandle = null;
 }
 
 window.applyCrop = () => {
@@ -240,22 +245,6 @@ window.cancelCrop = () => {
 
     const { canvas, ctx } = getEditor();
 
-    if (sourceImage) {
-
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        ctx.drawImage(
-            sourceImage,
-            0,
-            0
-        );
-    }
-
     restoreImage();
     logTool("Crop cancelled");
 
@@ -268,21 +257,6 @@ window.closeCrop = () => {
     
     const { canvas, ctx } = getEditor();
 
-    if (sourceImage) {
-
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        ctx.drawImage(
-            sourceImage,
-            0,
-            0
-        );
-    }
     restoreImage();
     
     logTool("Crop closed");
@@ -416,7 +390,7 @@ function restoreImage() {
         sourceImage,
         0,
         0,
-        canvas.width,
-        canvas.height
+        sourceImage.width,
+        sourceImage.height
     );
 }
