@@ -1,6 +1,6 @@
 // js/tools/crop.js
 
-import { getEditor, saveHistory,logTool } from '../editor-core.js';
+import { getEditor, saveHistory,logTool,setToolBar } from '../editor-core.js';
 
 let isCropping = false;
 let startX = 0, startY = 0;
@@ -9,28 +9,20 @@ let activeHandle = null;
 
 const HANDLE_SIZE = 14;
 export function showCropPanel() {
+
     logTool("Crop panel opened");
-    const panel = document.getElementById('tool-panel');
-    panel.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <div class="font-medium">Crop Tool</div>
-            <button onclick="closeCrop()" class="text-2xl text-zinc-400">×</button>
-        </div>
 
-        <div class="text-xs text-zinc-400 mb-4">
-            Drag on image to select crop area
-        </div>
-
-        <button onclick="applyCrop()" 
-            class="w-full py-3 mb-3 bg-violet-600 hover:bg-violet-700 rounded-2xl text-sm font-medium">
-            Apply Crop
-        </button>
-
-        <button onclick="cancelCrop()" 
-            class="w-full py-3 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
-            Cancel
-        </button>
-    `;
+    setToolBar(
+        "Crop",
+        "cancelCrop()",
+        "applyCrop()"
+    );
+    let sourceImage = null;
+    sourceImage = new Image();
+sourceImage.src =
+    getEditor().state.history[
+        getEditor().state.historyIndex
+    ];
 
     initCrop();
 }
@@ -58,9 +50,14 @@ function updateCursor(pos) {
         pos.y
     );
 
-    if (handle) {
-        canvas.style.cursor = "nwse-resize";
-    }
+    if (handle === "tl" || handle === "br")
+    canvas.style.cursor = "nwse-resize";
+
+else if (
+    handle === "tr" ||
+    handle === "bl"
+)
+    canvas.style.cursor = "nesw-resize";
     else {
         canvas.style.cursor = "crosshair";
     }
@@ -249,13 +246,19 @@ endY = 0;
 activeHandle = null;
 logTool("Crop cancelled");
 cleanup();
+resetCrop();    
 };
 
 window.closeCrop = () => {
-    const panel =
-        document.getElementById("tool-panel");
 
-    panel.classList.remove("active");
+    cleanup();
+
+    startX = 0;
+    startY = 0;
+    endX = 0;
+    endY = 0;
+    activeHandle = null;
+    resetCrop();
 };
 
 function cleanup() {
@@ -266,6 +269,7 @@ function cleanup() {
     canvas.removeEventListener('pointerdown', startCrop);
     canvas.removeEventListener('pointermove', drawCrop);
     canvas.removeEventListener('pointerup', endCrop);
+    canvas.removeEventListener('pointermove',hoverCrop);
 
     const panel = document.getElementById("tool-panel");
     panel.classList.remove("active");
@@ -348,4 +352,12 @@ function hoverCrop(e) {
     const pos = getPos(e, canvas);
 
     updateCursor(pos);
+}
+function resetCrop() {
+
+    startX = 0;
+    startY = 0;
+    endX = 0;
+    endY = 0;
+    activeHandle = null;
 }
