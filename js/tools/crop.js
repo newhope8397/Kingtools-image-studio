@@ -237,14 +237,55 @@ if (w < 30 || h < 30) {
 };
 
 window.cancelCrop = () => {
-logTool("Crop cancelled");
-resetCrop();    
-cleanup();   
+
+    const { canvas, ctx } = getEditor();
+
+    if (sourceImage) {
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        ctx.drawImage(
+            sourceImage,
+            0,
+            0
+        );
+    }
+
+    logTool("Crop cancelled");
+
+    resetCrop();
+
+    cleanup();
 };
 
 window.closeCrop = () => {
+    
+    const { canvas, ctx } = getEditor();
+
+    if (sourceImage) {
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        ctx.drawImage(
+            sourceImage,
+            0,
+            0
+        );
+    }
+    logTool("Crop closed");
     resetCrop();
     cleanup();
+    
 };
 
 function cleanup() {
@@ -257,8 +298,7 @@ function cleanup() {
     canvas.removeEventListener('pointerup', endCrop);
     canvas.removeEventListener('pointermove',hoverCrop);
 
-    const panel = document.getElementById("tool-panel");
-    panel.classList.remove("active");
+    
 
 }
 
