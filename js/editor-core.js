@@ -1,7 +1,6 @@
 // js/editor-core.js
-import {
-    getSelectedFile
-} from "./core/file-engine.js";
+import { getSelectedFile } from "./core/file-engine.js";
+import { drawImage } from "./core/canvas-engine.js";
 
 let canvas, ctx;
 
@@ -124,10 +123,8 @@ function drawFromHistory() {
     img.src = state.history[state.historyIndex];
 
     img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-    };
+    drawImage(img);
+};
 }
 
 // ================= DOWNLOAD =================
