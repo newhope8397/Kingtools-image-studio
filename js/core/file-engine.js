@@ -6,8 +6,8 @@ let fileName = null;
 
 export function setFile (file) {
     currentFile = file;
-    fileType = type;
-    fileName = name;
+    fileType = file.type;
+    fileName = file.name;
 }
 
 export function getFile() {
