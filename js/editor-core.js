@@ -1,6 +1,5 @@
 // js/editor-core.js
 import {
-    triggerUpload,
     getSelectedFile
 } from "./core/file-engine.js";
 
