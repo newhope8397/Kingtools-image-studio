@@ -1,4 +1,8 @@
 // js/editor-core.js
+import {
+    triggerUpload,
+    getSelectedFile
+} from "./core/file-engine.js";
 
 let canvas, ctx;
 
@@ -7,10 +11,6 @@ let state = {
     history: [],
     historyIndex: -1
 };
-import {
-    triggerUpload,
-    getSelectedFile
-} from "./core/file-engine.js";
 
 // 🔥 SINGLE SOURCE OF TRUTH
 export function getEditor() {
@@ -37,11 +37,7 @@ ${file.type}
 ${Math.round(file.size / 1024 / 1024)} MB`
 );
 
-    if (!file || !file.type.startsWith("image/")) {
-        alert("Please upload a valid image");
-        return;
-    }
-
+    
     const reader = new FileReader();
 
     reader.onload = (ev) => {
