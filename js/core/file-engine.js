@@ -4,7 +4,7 @@ let currentFile = null;
 let fileType = null;
 let fileName = null;
 
-export function setFile(file, type, name) {
+export function setFile {
     currentFile = file;
     fileType = type;
     fileName = name;
@@ -43,20 +43,6 @@ export function triggerUpload() {
 
     input.click();
 }
-const file = e.target.files?.[0];
-
-if (!file) {
-    return;
-}
-
-if (!file.type.startsWith("image/")) {
-
-    alert(
-        "Please upload a valid image"
-    );
-
-    return;
-}
 
 export function getSelectedFile(e) {
 
@@ -64,6 +50,14 @@ export function getSelectedFile(e) {
         e.target.files?.[0];
 
     if (!file) {
+        return null;
+    }
+    if (!file.type.startsWith("image/")) {
+
+        alert(
+            "Please upload a valid image"
+        );
+
         return null;
     }
 
