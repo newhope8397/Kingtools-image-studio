@@ -1,5 +1,5 @@
 // js/editor-core.js
-import { getSelectedFile } from "./core/file-engine.js";
+import { triggerUpload, getSelectedFile } from "./core/file-engine.js";
 import { drawImage } from "./core/canvas-engine.js";
 import { saveHistory,undo,redo } from "./core/history-engine.js";
 
@@ -161,6 +161,7 @@ export function logTool(msg) {
 window.downloadImage = downloadImage;
 window.undo = undo;
 window.redo = redo;
+window.triggerUpload = triggerUpload;
 window.handleImageUpload = handleImageUpload;
 window.finishEditing = finishEditing;
 window.switchTool = switchTool;
