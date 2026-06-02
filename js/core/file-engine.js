@@ -4,7 +4,7 @@ let currentFile = null;
 let fileType = null;
 let fileName = null;
 
-export function setFile {
+export function setFile (file) {
     currentFile = file;
     fileType = type;
     fileName = name;
