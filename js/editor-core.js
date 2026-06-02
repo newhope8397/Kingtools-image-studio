@@ -53,13 +53,10 @@ ${Math.round(file.size / 1024 / 1024)} MB`
 }
 // ================= IMAGE LOAD =================
 export function loadImage(img) {
+
     state.image = img;
 
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img,0,0);
+    drawImage(img);
 
     saveHistory();
 }
