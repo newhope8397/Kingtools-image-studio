@@ -6,6 +6,8 @@ export function clearCanvas() {
 
     const { canvas, ctx } =
         getEditor();
+    
+    if (!canvas || !ctx) return;
 
     ctx.clearRect(
         0,
