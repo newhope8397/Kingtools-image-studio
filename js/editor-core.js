@@ -7,6 +7,10 @@ let state = {
     history: [],
     historyIndex: -1
 };
+import {
+    triggerUpload,
+    getSelectedFile
+} from "./core/file-engine.js";
 
 // 🔥 SINGLE SOURCE OF TRUTH
 export function getEditor() {
@@ -19,22 +23,11 @@ export function initEditor() {
 }
 
 // ================= UPLOAD =================
-export function triggerUpload() {
-    const input = document.getElementById("image-upload");
-
-    if (!input) {
-        console.error("Upload input not found");
-        return;
-    }
-
-    input.click();
-}
 
 export function handleImageUpload(e) {
-    const file = e.target.files?.[0];
+    const file = getSelectedFile(e);
 
 if (!file) {
-    showError("No file selected");
     return;
 }
 
@@ -213,7 +206,6 @@ export function logTool(msg) {
 window.downloadImage = downloadImage;
 window.undo = undo;
 window.redo = redo;
-window.triggerUpload = triggerUpload;
 window.handleImageUpload = handleImageUpload;
 window.finishEditing = finishEditing;
 window.switchTool = switchTool;
