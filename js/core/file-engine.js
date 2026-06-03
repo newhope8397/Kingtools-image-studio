@@ -1,4 +1,6 @@
 // core/file-engine.js
+import { state }
+from "./editor-state.js";
 
 let currentFile = null;
 let fileType = null;
@@ -8,13 +10,13 @@ export function setFile (file) {
     
     if (!file) return;
     
-    currentFile = file;
-    fileType = file.type;
-    fileName = file.name;
+    state.currentFile = file;
+    state.fileType = file.type;
+    state.fileName = file.name;
 }
 
 export function getFile() {
-    return currentFile;
+    return state.currentFile;
 }
 
 export function getFileType() {
