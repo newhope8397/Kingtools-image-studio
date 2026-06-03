@@ -16,17 +16,17 @@ export function getFile() {
 }
 
 export function getFileType() {
-    return fileType;
+    return state.fileType;
 }
 
 export function getFileName() {
-    return fileName;
+    return state.fileName;
 }
 
 export function clearFile() {
-    currentFile = null;
-    fileType = null;
-    fileName = null;
+    state.currentFile = null;
+    state.fileType = null;
+    state.fileName = null;
 }
 export function triggerUpload() {
 
