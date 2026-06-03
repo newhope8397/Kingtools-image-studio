@@ -18,17 +18,21 @@ export function clearCanvas() {
 
 export function drawImage(img) {
 
-    const { canvas, ctx } =
-        getEditor();
+    if (
+        !state.canvas ||
+        !state.ctx ||
+        !img
+    ) return;
 
-    if (!canvas || !ctx || !img) return;
+    state.canvas.width =
+        img.width;
 
-    canvas.width = img.width;
-    canvas.height = img.height;
+    state.canvas.height =
+        img.height;
 
     clearCanvas();
 
-    ctx.drawImage(
+    state.ctx.drawImage(
         img,
         0,
         0
@@ -40,17 +44,19 @@ export function resizeCanvas(
     height
 ) {
 
-    const { canvas } =
-        getEditor();
+    if (!state.canvas) return;
 
-    canvas.width = width;
-    canvas.height = height;
+    state.canvas.width =
+        width;
+
+    state.canvas.height =
+        height;
 }
 
 export function canvasToDataURL() {
 
-    const { canvas } =
-        getEditor();
+    if (!state.canvas)
+        return null;
 
-    return canvas.toDataURL();
+    return state.canvas.toDataURL();
 }
