@@ -1,19 +1,18 @@
 // js/core/canvas-engine.js
-
-import { getEditor } from "../editor-core.js";
+import { state } from "./editor-state.js";
 
 export function clearCanvas() {
 
-    const { canvas, ctx } =
-        getEditor();
-    
-    if (!canvas || !ctx) return;
+    if (
+        !state.canvas ||
+        !state.ctx
+    ) return;
 
-    ctx.clearRect(
+    state.ctx.clearRect(
         0,
         0,
-        canvas.width,
-        canvas.height
+        state.canvas.width,
+        state.canvas.height
     );
 }
 
