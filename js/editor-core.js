@@ -99,9 +99,18 @@ export function setToolBar(
 
 // ================= DOWNLOAD =================
 export function downloadImage() {
-    const a = document.createElement("a");
-    a.download = "kingtools.png";
-    a.href = canvas.toDataURL();
+
+    if (!state.canvas) return;
+
+    const a =
+        document.createElement("a");
+
+    a.download =
+        "kingtools.png";
+
+    a.href =
+        state.canvas.toDataURL();
+
     a.click();
 }
 // ================= UI FUNCTIONS =================
