@@ -22,6 +22,8 @@ export function drawImage(img) {
     const { canvas, ctx } =
         getEditor();
 
+    if (!canvas || !ctx || !img) return;
+
     canvas.width = img.width;
     canvas.height = img.height;
 
