@@ -1,5 +1,6 @@
 // js/tools/crop.js
 
+import { state } from "../core/editor-state.js";
 import { getEditor, saveHistory,logTool,setToolBar } from '../editor-core.js';
 
 let isCropping = false;
