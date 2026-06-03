@@ -7,10 +7,6 @@ import {
 
 export function saveHistory() {
 
-    const {
-        canvas,
-        state
-    } = getEditor();
 
     if (!canvas) return;
 
@@ -38,8 +34,6 @@ export function saveHistory() {
 
 export function undo() {
 
-    const { state } =
-        getEditor();
 
     if (
         state.historyIndex <= 0
@@ -54,8 +48,7 @@ export function undo() {
 
 export function redo() {
 
-    const { state } =
-        getEditor();
+
 
     if (
         state.historyIndex >=
@@ -71,8 +64,6 @@ export function redo() {
 
 export function drawFromHistory() {
 
-    const { state } =
-        getEditor();
 
     const img = new Image();
 
