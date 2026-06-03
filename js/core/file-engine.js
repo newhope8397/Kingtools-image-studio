@@ -2,10 +2,6 @@
 import { state }
 from "./editor-state.js";
 
-let currentFile = null;
-let fileType = null;
-let fileName = null;
-
 export function setFile (file) {
     
     if (!file) return;
