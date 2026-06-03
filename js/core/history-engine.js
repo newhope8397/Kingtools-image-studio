@@ -1,10 +1,6 @@
 import { state }
 from "./editor-state.js";
 
-import {
-    drawImage
-} from "./canvas-engine.js";
-
 export function saveHistory() {
 
 
