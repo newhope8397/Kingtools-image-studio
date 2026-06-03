@@ -1,6 +1,5 @@
-import {
-    getEditor
-} from "../editor-core.js";
+import { state }
+from "./editor-state.js";
 
 import {
     drawImage
