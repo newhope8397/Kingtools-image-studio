@@ -1,24 +1,28 @@
 // js/editor-core.js
+import { state }from "./core/editor-state.js";
 import { triggerUpload, getSelectedFile } from "./core/file-engine.js";
 import { drawImage } from "./core/canvas-engine.js";
 import { saveHistory,undo,redo } from "./core/history-engine.js";
 
-let canvas, ctx;
-
-let state = {
-    image: null,
-    history: [],
-    historyIndex: -1
-};
 
 // 🔥 SINGLE SOURCE OF TRUTH
 export function getEditor() {
-    return { canvas, ctx, state };
+    return state;
 }
-
 export function initEditor() {
-    canvas = document.getElementById('main-canvas');
-    ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    state.canvas =
+        document.getElementById(
+            "main-canvas"
+        );
+
+    state.ctx =
+        state.canvas.getContext(
+            "2d",
+            {
+                willReadFrequently: true
+            }
+        );
 }
 
 // ================= UPLOAD =================
