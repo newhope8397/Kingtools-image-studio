@@ -1,11 +1,12 @@
 ///js/core/history-engine.js///
     import { state }
 from "./editor-state.js";
-
+import { drawImage }
+from "./canvas-engine.js";
 export function saveHistory() {
 
 
-    if (!canvas) return;
+    if (!state.canvas) return;
 
     state.history =
         state.history.slice(
@@ -14,7 +15,7 @@ export function saveHistory() {
         );
 
     state.history.push(
-        canvas.toDataURL()
+        state.canvas.toDataURL()
     );
 
     state.historyIndex++;
