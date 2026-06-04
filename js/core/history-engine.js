@@ -69,6 +69,12 @@ export function drawFromHistory() {
         state.history[
             state.historyIndex
         ];
+    if (
+    state.historyIndex < 0 ||
+    !state.history[state.historyIndex]
+) {
+    return;
+    }
 
     img.onload = () => {
 
