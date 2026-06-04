@@ -22,6 +22,9 @@ window.adjustBrightness = (value) => {
         data[i+1] *= factor;
         data[i+2] *= factor;
     }
+    window.applyBrightness = () => {
+   saveHistory();
+    }
 
     ctx.putImageData(imageData, 0, 0);
 };
