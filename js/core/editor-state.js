@@ -13,6 +13,6 @@ export const state = {
     fileType: null,
     fileName: null,
 
-    activeTool: null
+    activeTool: null,
     isBusy: false
 };
