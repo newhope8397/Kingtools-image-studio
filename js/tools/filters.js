@@ -25,9 +25,13 @@ window.applyFilter = (type) => {
         }
 
         if (type === 'sepia') {
-            r = r * 0.393 + g * 0.769 + b * 0.189;
-            g = r * 0.349 + g * 0.686 + b * 0.168;
-            b = r * 0.272 + g * 0.534 + b * 0.131;
+        const or = r;
+        const og = g;
+        const ob = b;
+
+r = or * 0.393 + og * 0.769 + ob * 0.189;
+g = or * 0.349 + og * 0.686 + ob * 0.168;
+b = or * 0.272 + og * 0.534 + ob * 0.131;
         }
 
         if (type === 'vivid') {
