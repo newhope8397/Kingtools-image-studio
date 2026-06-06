@@ -1,4 +1,6 @@
 import { getEditor, saveHistory } from '../editor-core.js';
+import { saveHistory }
+from "../core/history-engine.js";
 
 let isErasing = false;
 
