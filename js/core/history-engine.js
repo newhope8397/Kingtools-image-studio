@@ -63,18 +63,19 @@ export function redo() {
 export function drawFromHistory() {
 
 
-    const img = new Image();
-
-    img.src =
-        state.history[
-            state.historyIndex
-        ];
     if (
     state.historyIndex < 0 ||
     !state.history[state.historyIndex]
 ) {
     return;
-    }
+}
+
+const img = new Image();
+
+img.src =
+    state.history[
+        state.historyIndex
+    ];
 
     img.onload = () => {
 
