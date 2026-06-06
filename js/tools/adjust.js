@@ -1,4 +1,6 @@
-import { getEditor, saveHistory } from '../editor-core.js';
+import { getEditor } from '../editor-core.js';
+import { saveHistory }
+from "../core/history-engine.js";
 
 export function showAdjustPanel() {
     const panel = document.getElementById('tool-panel');
