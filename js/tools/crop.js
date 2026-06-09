@@ -33,9 +33,26 @@ sourceImage.onload = () => {
     alert("Failed to load image");
 };
 
+const editor =
+    getEditor();
+
+if (
+    editor.historyIndex < 0 ||
+    !editor.history[
+        editor.historyIndex
+    ]
+) {
+
+    alert(
+        "Upload image first"
+    );
+
+    return;
+}
+
 sourceImage.src =
-    getEditor().history[
-        getEditor().historyIndex
+    editor.history[
+        editor.historyIndex
     ];
 }
 
