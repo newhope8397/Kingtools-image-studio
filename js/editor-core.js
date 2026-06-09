@@ -175,6 +175,12 @@ export function logTool(msg) {
         `[KingTools ${time}] ${msg}`
     );
 }
+
+export {
+    triggerUpload,
+    undo,
+    redo
+};
 window.downloadImage = downloadImage;
 window.undo = undo;
 window.redo = redo;
