@@ -1,30 +1,99 @@
-import { getEditor } from '../editor-core.js';
-import { saveHistory }
-from "../core/history-engine.js";
+import { getEditor } from "../editor-core.js";
+import { saveHistory } from "../core/history-engine.js";
+import { activateTool } from "../core/tool-engine.js";
 
 let isErasing = false;
 
 export function showEraserPanel() {
-    const panel = document.getElementById('tool-panel');
-    panel.innerHTML = `<div>Drag on image to erase</div>`;
 
-    const { canvas, ctx } = getEditor();
+    const panel =
+        document.getElementById(
+            "tool-panel"
+        );
 
-    canvas.onpointerdown = () => isErasing = true;
-    canvas.onpointerup = () => {
-        isErasing = false;
-        saveHistory();
-    };
+    panel.innerHTML =
+        `<div>Drag on image to erase</div>`;
 
-    canvas.onpointermove = (e) => {
-        if (!isErasing) return;
+    activateTool(() => {
 
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const {
+            canvas,
+            ctx
+        } = getEditor();
 
-        ctx.clearRect(x - 10, y - 10, 20, 20);
-    };
+        function pointerDown() {
+
+            isErasing = true;
+        }
+
+        function pointerUp() {
+
+            if (!isErasing)
+                return;
+
+            isErasing = false;
+
+            saveHistory();
+        }
+
+        function pointerMove(e) {
+
+            if (!isErasing)
+                return;
+
+            const rect =
+                canvas.getBoundingClientRect();
+
+            const x =
+                (e.clientX - rect.left) *
+                (canvas.width / rect.width);
+
+            const y =
+                (e.clientY - rect.top) *
+                (canvas.height / rect.height);
+
+            ctx.clearRect(
+                x - 10,
+                y - 10,
+                20,
+                20
+            );
+        }
+
+        canvas.addEventListener(
+            "pointerdown",
+            pointerDown
+        );
+
+        canvas.addEventListener(
+            "pointerup",
+            pointerUp
+        );
+
+        canvas.addEventListener(
+            "pointermove",
+            pointerMove
+        );
+
+        // cleanup
+        return () => {
+
+            isErasing = false;
+
+            canvas.removeEventListener(
+                "pointerdown",
+                pointerDown
+            );
+
+            canvas.removeEventListener(
+                "pointerup",
+                pointerUp
+            );
+
+            canvas.removeEventListener(
+                "pointermove",
+                pointerMove
+            );
+        };
+    });
 }
-
-window.showEraserPanel = showEraserPanel;
