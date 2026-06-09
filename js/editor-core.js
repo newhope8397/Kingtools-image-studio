@@ -3,6 +3,7 @@ import { state }from "./core/editor-state.js";
 import { triggerUpload, getSelectedFile } from "./core/file-engine.js";
 import { drawImage } from "./core/canvas-engine.js";
 import { saveHistory,undo,redo } from "./core/history-engine.js";
+import { deactivateTool }from "./core/tool-engine.js";
 
 
 // 🔥 SINGLE SOURCE OF TRUTH
@@ -120,6 +121,9 @@ export function finishEditing() {
 }
 
 export async function switchTool(n) {
+
+    deactivateTool();
+    
     const panel = document.getElementById("tool-panel");
     if (!panel) return;
 
