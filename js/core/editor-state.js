@@ -14,5 +14,16 @@ export const state = {
     fileName: null,
 
     activeTool: null,
-    isBusy: false
+    isBusy: false,
+    activeSelection: null,
+
+zoom: 1,
+
+rotation: 0,
+
+layers: [],
+
+theme: "dark",
+
+activePanel: null
 };
