@@ -1,5 +1,6 @@
 import { getEditor } from "../editor-core.js";
 import { saveHistory } from "../core/history-engine.js";
+import { requireImage } from "../core/guard-engine.js";
 
 let originalImageData = null;
 
@@ -9,6 +10,7 @@ export function showAdjustPanel() {
         canvas,
         ctx
     } = getEditor();
+    if (!requireImage()) return;
 
     originalImageData =
         ctx.getImageData(
