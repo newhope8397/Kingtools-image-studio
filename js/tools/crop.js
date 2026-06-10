@@ -14,6 +14,7 @@ let sourceImage = null;
 const HANDLE_SIZE = 14;
 
 export function showCropPanel() {
+    if (!requireImage()) return;
 
     logTool("Crop panel opened");
 
