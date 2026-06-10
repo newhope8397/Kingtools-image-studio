@@ -6,12 +6,18 @@ import { requireImage } from "../core/guard-engine.js";
 export function showFiltersPanel() {
     const panel = document.getElementById('tool-panel');
     if (!requireImage()) return;
-    panel.innerHTML = `
-        <div class="mb-4 font-medium">Filters</div>
-        <button onclick="applyFilter('grayscale')">Grayscale</button>
-        <button onclick="applyFilter('sepia')">Sepia</button>
-        <button onclick="applyFilter('vivid')">Vivid</button>
-    `;
+    openPanel(
+    "Filters",
+`
+<button onclick="applyFilter('grayscale')">
+Grayscale
+</button>
+
+<button onclick="applyFilter('sepia')">
+Sepia
+</button>
+`
+);
 }
 
 window.applyFilter = (type) => {
