@@ -4,6 +4,7 @@ import { getEditor,logTool,setToolBar }
     from '../editor-core.js';
 import { saveHistory }
 from "../core/history-engine.js";
+import { requireImage } from "../core/guard-engine.js";
 
 let isCropping = false;
 let startX = 0, startY = 0;
