@@ -14,6 +14,8 @@ export const state = {
     fileName: null,
 
     activeTool: null,
+    toolCleanup: null,
+    clipboard: null,
     isBusy: false,
     activeSelection: null,
 
