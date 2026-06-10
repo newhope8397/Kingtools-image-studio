@@ -13,3 +13,16 @@ export function hasImage() {
 
     return true;
 }
+export function requireImage() {
+
+    if (!state.image) {
+
+        alert(
+            "Upload image first"
+        );
+
+        return false;
+    }
+
+    return true;
+}
