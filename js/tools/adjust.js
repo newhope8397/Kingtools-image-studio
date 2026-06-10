@@ -25,28 +25,18 @@ export function showAdjustPanel() {
             "tool-panel"
         );
 
-    panel.innerHTML = `
-        <div class="p-4">
+openPanel(
+    "Adjust",
+`
+<label>Brightness</label>
 
-            <div>Brightness</div>
-
-            <input
-                type="range"
-                min="50"
-                max="150"
-                value="100"
-                oninput="adjustBrightness(this.value)"
-            >
-
-            <button
-                onclick="applyBrightness()"
-            >
-                Apply
-            </button>
-
-        </div>
-    `;
-}
+<input
+type="range"
+min="-100"
+max="100"
+/>
+`
+);
 
 window.adjustBrightness = (value) => {
 
