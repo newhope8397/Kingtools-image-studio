@@ -1,6 +1,7 @@
 import { getEditor } from "../editor-core.js";
 import { saveHistory } from "../core/history-engine.js";
 import { activateTool } from "../core/tool-engine.js";
+import { requireImage } from "../core/guard-engine.js";
 
 let isErasing = false;
 
@@ -10,6 +11,7 @@ export function showEraserPanel() {
         document.getElementById(
             "tool-panel"
         );
+    if (!requireImage()) return;
 
     panel.innerHTML =
         `<div>Drag on image to erase</div>`;
