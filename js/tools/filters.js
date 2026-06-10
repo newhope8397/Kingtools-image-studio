@@ -1,9 +1,11 @@
 import { getEditor } from '../editor-core.js';
 import { saveHistory }
 from "../core/history-engine.js";
+import { requireImage } from "../core/guard-engine.js";
 
 export function showFiltersPanel() {
     const panel = document.getElementById('tool-panel');
+    if (!requireImage()) return;
     panel.innerHTML = `
         <div class="mb-4 font-medium">Filters</div>
         <button onclick="applyFilter('grayscale')">Grayscale</button>
