@@ -1,6 +1,7 @@
 import { getEditor } from "../editor-core.js";
 import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
+import { openPanel } from "../core/panel-engine.js";
 
 let originalImageData = null;
 
