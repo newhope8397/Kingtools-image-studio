@@ -60,3 +60,13 @@ export function canvasToDataURL() {
 
     return state.canvas.toDataURL();
 }
+
+export function syncStateImage() {
+    const img = new Image();
+
+    img.onload = () => {
+        state.image = img;
+    };
+
+    img.src = state.canvas.toDataURL();
+}
