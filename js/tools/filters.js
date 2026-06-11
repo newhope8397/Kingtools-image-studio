@@ -30,12 +30,18 @@ window.applyFilter = (type) => {
     for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
 
-        if (type === 'grayscale') {
+    const filters = {
+    grayscale,
+    sepia,
+    vivid
+};
+
+        {
             const gray = (r + g + b) / 3;
             r = g = b = gray;
         }
 
-        if (type === 'sepia') {
+     {
         const or = r;
         const og = g;
         const ob = b;
@@ -45,7 +51,7 @@ g = or * 0.349 + og * 0.686 + ob * 0.168;
 b = or * 0.272 + og * 0.534 + ob * 0.131;
         }
 
-        if (type === 'vivid') {
+        {
             r *= 1.2; g *= 1.2; b *= 1.2;
         }
 
