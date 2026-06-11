@@ -81,3 +81,4 @@ window.applyBrightness = () => {
 
     saveHistory();
 };
+}
