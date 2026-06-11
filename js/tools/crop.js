@@ -5,6 +5,10 @@ import { getEditor,logTool,setToolBar }
 import { saveHistory }
 from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
+import {
+    getCanvasPos
+}
+from "../core/event-engine.js";
 
 let isCropping = false;
 let startX = 0, startY = 0;
@@ -94,13 +98,7 @@ else if (
     }
 }
 
-function getPos(e, canvas) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-        x: (e.clientX - rect.left) * (canvas.width / rect.width),
-        y: (e.clientY - rect.top) * (canvas.height / rect.height)
-    };
-}
+
 
 function startCrop(e) {
     logTool("Crop selection started");
