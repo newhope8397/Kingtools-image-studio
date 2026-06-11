@@ -1,7 +1,8 @@
 // core/editor-state.js
-version: "1.0.0"
+
 
 export const state = {
+    version: "1.0.0"
     canvas: null,
     ctx: null,
 
