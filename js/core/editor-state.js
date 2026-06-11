@@ -27,5 +27,11 @@ layers: [],
 
 theme: "dark",
 
-activePanel: null
+activePanel: null,
+    
+    isBusy: false,
+
+    isDirty: false,
+
+    debugMode: true
 };
