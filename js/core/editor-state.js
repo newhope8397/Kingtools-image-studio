@@ -28,8 +28,6 @@ layers: [],
 theme: "dark",
 
 activePanel: null,
-    
-    isBusy: false,
 
     isDirty: false,
 
