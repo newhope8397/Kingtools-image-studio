@@ -4,7 +4,10 @@ import { state } from "./editor-state.js";
 
 export function setZoom(value) {
 
-    state.zoom = value;
+    state.zoom = Math.max(
+    0.1,
+    Math.min(10, value)
+);
 }
 
 export function zoomIn() {
