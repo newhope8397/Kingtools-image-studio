@@ -58,9 +58,7 @@ window.adjustBrightness = (value) => {
     const data =
         imageData.data;
 
-    const factor =
-        value / 100;
-
+    const factor = 1 + value / 100;
     for (
         let i = 0;
         i < data.length;
