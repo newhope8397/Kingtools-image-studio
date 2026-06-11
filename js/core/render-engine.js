@@ -43,5 +43,10 @@ export function render() {
         -state.image.height / 2
     );
 
+    console.log(
+    state.image.width,
+    state.image.height
+);
+
     ctx.restore();
 }
