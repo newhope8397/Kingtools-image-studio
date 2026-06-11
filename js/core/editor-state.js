@@ -9,6 +9,16 @@ export const state = {
     history: [],
     historyIndex: -1,
 
+    
+    mouseX: 0,
+    mouseY: 0,
+
+  canvasOffsetX: 0,
+  canvasOffsetY: 0,
+
+devicePixelRatio:
+window.devicePixelRatio || 1,
+
     currentFile: null,
     fileType: null,
     fileName: null,
