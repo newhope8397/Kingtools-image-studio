@@ -1,5 +1,5 @@
 import { getEditor } from '../editor-core.js';
-import { syncStateImage } from "../core/canvas-engine.js";
+import { commitCanvas } from "../core/canvas-engine.js";
 import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
 import { openPanel } from "../core/panel-engine.js";
@@ -61,7 +61,7 @@ b = or * 0.272 + og * 0.534 + ob * 0.131;
     }
 
     ctx.putImageData(imageData, 0, 0);
-    syncStateImage();
+    commitCanvas();
 
     saveHistory();
 };
