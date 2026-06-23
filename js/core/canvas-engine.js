@@ -62,6 +62,10 @@ export function canvasToDataURL() {
 }
 
 export function syncStateImage() {
+    
+    if (!state.canvas)
+        return;
+
     const img = new Image();
 
     img.onload = () => {
