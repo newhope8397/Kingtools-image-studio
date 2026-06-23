@@ -75,9 +75,18 @@ export function syncStateImage() {
     img.src = state.canvas.toDataURL();
 }
 
+export function markDirty() {
+    state.isDirty = true;
+}
+
+export function clearDirty() {
+    state.isDirty = false;
+}
+
 export function commitCanvas() {
 
     syncStateImage();
 
     saveHistory();
+    clearDirty();
 }
