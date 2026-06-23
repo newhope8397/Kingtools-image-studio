@@ -1,6 +1,6 @@
 import { getEditor } from '../editor-core.js';
-import { saveHistory }
-from "../core/history-engine.js";
+import { syncStateImage } from "../core/canvas-engine.js";
+import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
 import { openPanel } from "../core/panel-engine.js";
 
