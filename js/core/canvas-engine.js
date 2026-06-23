@@ -74,3 +74,10 @@ export function syncStateImage() {
 
     img.src = state.canvas.toDataURL();
 }
+
+export function commitCanvas() {
+
+    syncStateImage();
+
+    saveHistory();
+}
