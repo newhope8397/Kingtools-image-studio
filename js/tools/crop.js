@@ -253,7 +253,8 @@ if (w < 30 || h < 30) {
     canvas.width = w;
     canvas.height = h;
     ctx.drawImage(temp, 0, 0);
-
+    
+    syncStateImage();
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
     resetCrop();
