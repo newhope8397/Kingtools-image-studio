@@ -1,7 +1,7 @@
 // js/tools/crop.js
 
 import { getEditor,logTool,setToolBar } from '../editor-core.js';
-import { syncStateImage } from "../core/canvas-engine.js";
+import { commitCanvas } from "../core/canvas-engine.js";
 import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
 import { getCanvasPos } from "../core/event-engine.js";
@@ -250,7 +250,7 @@ if (w < 30 || h < 30) {
     canvas.height = h;
     ctx.drawImage(temp, 0, 0);
     
-    syncStateImage();
+    commitCanvas();
     saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
     resetCrop();
