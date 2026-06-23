@@ -1,5 +1,5 @@
 import { getEditor } from '../editor-core.js';
-import { syncStateImage } from "../core/canvas-engine.js";
+import { commitCanvas } from "../core/canvas-engine.js";
 import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
 
@@ -35,7 +35,7 @@ window.applyEffect = (type) => {
     }
 
     ctx.putImageData(imageData, 0, 0);
-    syncStateImage();
+    commitCanvas();
 
     saveHistory();
 };
