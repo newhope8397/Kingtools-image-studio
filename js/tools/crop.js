@@ -1,14 +1,10 @@
 // js/tools/crop.js
 
-import { getEditor,logTool,setToolBar }
-    from '../editor-core.js';
-import { saveHistory }
-from "../core/history-engine.js";
+import { getEditor,logTool,setToolBar } from '../editor-core.js';
+import { syncStateImage } from "../core/canvas-engine.js";
+import { saveHistory } from "../core/history-engine.js";
 import { requireImage } from "../core/guard-engine.js";
-import {
-    getCanvasPos
-}
-from "../core/event-engine.js";
+import { getCanvasPos } from "../core/event-engine.js";
 
 let isCropping = false;
 let startX = 0, startY = 0;
