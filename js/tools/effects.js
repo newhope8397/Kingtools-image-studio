@@ -35,6 +35,8 @@ window.applyEffect = (type) => {
     }
 
     ctx.putImageData(imageData, 0, 0);
+    syncStateImage();
+
     saveHistory();
 };
 
