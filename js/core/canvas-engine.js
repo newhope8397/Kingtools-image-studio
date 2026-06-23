@@ -1,6 +1,6 @@
 // js/core/canvas-engine.js
 import { state } from "./editor-state.js";
-
+import { saveHistory } from "./history-engine.js";          
 export function clearCanvas() {
 
     if (
