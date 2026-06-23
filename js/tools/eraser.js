@@ -1,6 +1,7 @@
 import { getEditor } from "../editor-core.js";
-import { saveHistory } from "../core/history-engine.js";
-import { activateTool } from "../core/tool-engine.js";
+import { syncStateImage } from "../core/canvas-engine.js";      
+import { saveHistory } from "../core/history-engine.js";  
+import { activateTool } from "../core/tool-engine.js";     
 import { requireImage } from "../core/guard-engine.js";
 
 let isErasing = false;
