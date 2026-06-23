@@ -76,11 +76,12 @@ window.adjustBrightness = (value) => {
         0,
         0
     );
-    syncStateImage();
+    
 
 };
 
 window.applyBrightness = () => {
+    syncStateImage();
 
     saveHistory();
 };
