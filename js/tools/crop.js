@@ -103,7 +103,7 @@ else if (
 function startCrop(e) {
     logTool("Crop selection started");
     const { canvas } = getEditor();
-    const pos = getPos(e, canvas);
+    const pos = getCanvasPos(e);
     
     activeHandle =
     getHandleAt(pos.x, pos.y);
@@ -131,7 +131,7 @@ function drawCrop(e) {
     if (!isCropping) return;
 
     const { canvas, ctx } = getEditor();
-    const pos = getPos(e, canvas);
+    const pos = getCanvasPos(e);
 
 
 if (activeHandle === "tl") {
@@ -374,7 +374,7 @@ function hoverCrop(e) {
 
     const { canvas } = getEditor();
 
-    const pos = getPos(e, canvas);
+    const pos = getCanvasPos(e);
 
     updateCursor(pos);
 }
