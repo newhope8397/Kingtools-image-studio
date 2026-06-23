@@ -61,6 +61,8 @@ b = or * 0.272 + og * 0.534 + ob * 0.131;
     }
 
     ctx.putImageData(imageData, 0, 0);
+    syncStateImage();
+
     saveHistory();
 };
 
