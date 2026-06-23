@@ -34,6 +34,8 @@ export function showEraserPanel() {
                 return;
 
             isErasing = false;
+            syncStateImage();
+
 
             saveHistory();
         }
