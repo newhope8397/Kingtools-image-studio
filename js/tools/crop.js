@@ -251,7 +251,6 @@ if (w < 30 || h < 30) {
     ctx.drawImage(temp, 0, 0);
     
     commitCanvas();
-    saveHistory();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
     resetCrop();
     cleanup();
