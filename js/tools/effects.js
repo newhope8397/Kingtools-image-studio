@@ -35,9 +35,7 @@ window.applyEffect = (type) => {
     }
 
     ctx.putImageData(imageData, 0, 0);
-    commitCanvas();
-
-    saveHistory();
+    commitCanvas()
 };
 
 window.showEffectsPanel = showEffectsPanel;
