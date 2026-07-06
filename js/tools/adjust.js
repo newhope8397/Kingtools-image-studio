@@ -81,8 +81,6 @@ window.adjustBrightness = (value) => {
 };
 
 window.applyBrightness = () => {
-    syncStateImage();
-
-    saveHistory();
+    commitCanvas();
 };
 }
