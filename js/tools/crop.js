@@ -2,7 +2,7 @@
 
 import { getEditor,logTool,setToolBar } from '../editor-core.js';
 import { commitCanvas } from "../core/canvas-engine.js";
-import { saveHistory } from "../core/history-engine.js";
+
 import { requireImage } from "../core/guard-engine.js";
 import { getCanvasPos } from "../core/event-engine.js";
 
