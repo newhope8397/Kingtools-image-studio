@@ -88,5 +88,7 @@ export function commitCanvas() {
     syncStateImage();
 
     saveHistory();
+    markDirty();
     clearDirty();
+    
 }
