@@ -31,39 +31,41 @@ window.applyFilter = (type) => {
         let r = data[i], g = data[i+1], b = data[i+2];
 
     const filters = {
-    grayscale,
-    sepia,
-    vivid
+const filters = {
+
+    grayscale(r,g,b) {
+        const gray = (r+g+b)/3;
+        return [gray,gray,gray];
+    },
+
+    sepia(r,g,b) {
+        return [
+            r*0.393 + g*0.769 + b*0.189,
+            r*0.349 + g*0.686 + b*0.168,
+            r*0.272 + g*0.534 + b*0.131
+        ];
+    },
+
+    vivid(r,g,b) {
+        return [
+            r*1.2,
+            g*1.2,
+            b*1.2
+        ];
+    }
 };
 
-        {
-            const gray = (r + g + b) / 3;
-            r = g = b = gray;
-        }
+const fn = filters[type];
 
-     {
-        const or = r;
-        const og = g;
-        const ob = b;
+if (!fn) return;
 
-r = or * 0.393 + og * 0.769 + ob * 0.189;
-g = or * 0.349 + og * 0.686 + ob * 0.168;
-b = or * 0.272 + og * 0.534 + ob * 0.131;
-        }
-
-        {
-            r *= 1.2; g *= 1.2; b *= 1.2;
-        }
-
-        data[i] = Math.min(255, r);
-        data[i+1] = Math.min(255, g);
-        data[i+2] = Math.min(255, b);
-    }
+const [nr,ng,nb] =
+    fn(r,g,b);
+    
 
     ctx.putImageData(imageData, 0, 0);
     commitCanvas();
 
-    saveHistory();
 };
 
 window.showFiltersPanel = showFiltersPanel;
