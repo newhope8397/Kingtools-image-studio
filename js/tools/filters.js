@@ -57,12 +57,20 @@ const filters = {
 
 const fn = filters[type];
 
-if (!fn) return;
+if(!fn) return;
 
-const [nr,ng,nb] =
-    fn(r,g,b);
-    
+for(let i=0;i<data.length;i+=4){
 
+    const [r,g,b]=fn(
+        data[i],
+        data[i+1],
+        data[i+2]
+    );
+
+    data[i]=Math.min(255,r);
+    data[i+1]=Math.min(255,g);
+    data[i+2]=Math.min(255,b);
+}
     ctx.putImageData(imageData, 0, 0);
     commitCanvas();
 
