@@ -18,39 +18,33 @@ export function clearCanvas() {
 
 export function drawImage(img) {
 
-    if (
-        !state.canvas ||
-        !state.ctx ||
-        !img
-    ) return;
+    if (!state.canvas || !state.ctx || !img)
+        return;
 
-    state.canvas.width =
-        img.width;
-
-    state.canvas.height =
-        img.height;
-
-    clearCanvas();
+    resizeCanvas(
+        img.naturalWidth || img.width,
+        img.naturalHeight || img.height
+    );
 
     state.ctx.drawImage(
         img,
         0,
         0
     );
+
+    state.image = img;
 }
 
-export function resizeCanvas(
-    width,
-    height
-) {
+export function resizeCanvas(width,height){
 
-    if (!state.canvas) return;
+    if(!state.canvas)
+        return;
 
-    state.canvas.width =
-        width;
+    state.canvas.width = width;
+    state.canvas.height = height;
 
-    state.canvas.height =
-        height;
+    state.ctx =
+        state.canvas.getContext("2d");
 }
 
 export function canvasToDataURL() {
