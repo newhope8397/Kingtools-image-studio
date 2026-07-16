@@ -1,7 +1,7 @@
 // js/tools/crop.js
 
 import { getEditor,logTool,setToolBar } from '../editor-core.js';
-import { commitCanvas } from "../core/canvas-engine.js";
+import { commitCanvas ,resizeCanvas } from "../core/canvas-engine.js";
 
 import { requireImage } from "../core/guard-engine.js";
 import { getCanvasPos } from "../core/event-engine.js";
@@ -246,8 +246,7 @@ if (w < 30 || h < 30) {
     const tctx = temp.getContext("2d");
     tctx.drawImage(sourceImage, x, y, w, h, 0, 0, w, h);
 
-    canvas.width = w;
-    canvas.height = h;
+    resizeCanvas(w,h);
     ctx.drawImage(temp, 0, 0);
     
     commitCanvas();
