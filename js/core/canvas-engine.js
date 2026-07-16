@@ -83,6 +83,11 @@ export function commitCanvas() {
 
     saveHistory();
 
-    clearDirty();
+    markDirty();
     
+}
+export function saveCompleted(){
+
+    clearDirty();
+
 }
