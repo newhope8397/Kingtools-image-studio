@@ -45,8 +45,8 @@ export function showEraserPanel() {
             if (!isErasing)
                 return;
 
-            const rect =
-                const pos = getCanvasPos(e);
+    
+            const pos = getCanvasPos(e);
 
 ctx.clearRect(
     pos.x - 10,
