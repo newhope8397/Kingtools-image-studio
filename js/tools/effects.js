@@ -7,11 +7,19 @@ export function showEffectsPanel() {
     
     const panel = document.getElementById('tool-panel');
     if (!requireImage()) return;
-    panel.innerHTML = `
-        <div class="mb-4 font-medium">Effects</div>
-        <button onclick="applyEffect('blur')">Blur</button>
-        <button onclick="applyEffect('glow')">Glow</button>
-    `;
+    openPanel(
+    "Effects",
+    `
+<button onclick="applyEffect('blur')">
+Blur
+</button>
+
+<button onclick="applyEffect('glow')">
+Glow
+</button>
+`
+);
+
 }
 
 window.applyEffect = (type) => {
