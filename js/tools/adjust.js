@@ -30,13 +30,13 @@ export function showAdjustPanel() {
 openPanel(
     "Adjust",
 `
-<label>Brightness</label>
-
 <input
 type="range"
 min="-100"
 max="100"
-/>
+value="0"
+oninput="adjustBrightness(this.value)"
+>
 `
 );
 
