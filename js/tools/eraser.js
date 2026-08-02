@@ -46,22 +46,14 @@ export function showEraserPanel() {
                 return;
 
             const rect =
-                canvas.getBoundingClientRect();
+                const pos = getCanvasPos(e);
 
-            const x =
-                (e.clientX - rect.left) *
-                (canvas.width / rect.width);
-
-            const y =
-                (e.clientY - rect.top) *
-                (canvas.height / rect.height);
-
-            ctx.clearRect(
-                x - 10,
-                y - 10,
-                20,
-                20
-            );
+ctx.clearRect(
+    pos.x - 10,
+    pos.y - 10,
+    20,
+    20
+);
         }
 
         canvas.addEventListener(
