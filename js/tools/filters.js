@@ -30,7 +30,6 @@ window.applyFilter = (type) => {
     for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
 
-    const filters = {
 const filters = {
 
     grayscale(r,g,b) {
