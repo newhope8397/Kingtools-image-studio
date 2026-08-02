@@ -247,6 +247,7 @@ if (w < 30 || h < 30) {
     tctx.drawImage(sourceImage, x, y, w, h, 0, 0, w, h);
 
     resizeCanvas(w,h);
+    const { ctx } = getEditor();
     ctx.drawImage(temp, 0, 0);
     
     commitCanvas();
