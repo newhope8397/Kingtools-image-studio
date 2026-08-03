@@ -1,4 +1,5 @@
 import { getEditor } from '../editor-core.js';
+import { openPanel } from "../core/panel-engine.js";
 import { commitCanvas } from "../core/canvas-engine.js";
 
 import { requireImage } from "../core/guard-engine.js";
