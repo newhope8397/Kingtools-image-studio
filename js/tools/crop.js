@@ -228,7 +228,7 @@ function endCrop(e) {
 
 window.applyCrop = () => {
     if (!sourceImage) return;
-    const { canvas, ctx } = getEditor();
+    const { ctx } = getEditor();
 
     const x = Math.min(startX, endX);
     const y = Math.min(startY, endY);
@@ -248,9 +248,9 @@ if (w < 30 || h < 30) {
     const tctx = temp.getContext("2d");
     tctx.drawImage(sourceImage, x, y, w, h, 0, 0, w, h);
 
-    resizeCanvas(w,h);
-    const { ctx } = getEditor();
-    ctx.drawImage(temp, 0, 0);
+    resizeCanvas(w, h);
+
+getEditor().ctx.drawImage(temp, 0, 0);
     
     commitCanvas();
     logTool(`Crop applied ${Math.round(w)}x${Math.round(h)}`);
