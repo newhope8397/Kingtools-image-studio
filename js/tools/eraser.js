@@ -1,5 +1,10 @@
 import { getEditor } from "../editor-core.js";
-import { commitCanvas } from "../core/canvas-engine.js";      
+import { commitCanvas } from "../core/canvas-engine.js";
+import { openPanel }
+from "../core/panel-engine.js";
+
+import { getCanvasPos }
+from "../core/event-engine.js";
 
 import { activateTool } from "../core/tool-engine.js";     
 import { requireImage } from "../core/guard-engine.js";
@@ -14,9 +19,12 @@ export function showEraserPanel() {
         );
     if (!requireImage()) return;
 
-    panel.innerHTML =
-        `<div>Drag on image to erase</div>`;
-
+    openPanel(
+    "Eraser",
+`
+Drag on image to erase.
+`
+);
     activateTool(() => {
 
         const {
@@ -46,14 +54,14 @@ export function showEraserPanel() {
                 return;
 
     
-            const pos = getCanvasPos(e);
+    const pos = getCanvasPos(e);
 
-ctx.clearRect(
-    pos.x - 10,
-    pos.y - 10,
-    20,
-    20
-);
+    ctx.clearRect(
+        pos.x - 10,
+        pos.y - 10,
+        20,
+        20
+ );
         }
 
         canvas.addEventListener(
@@ -68,7 +76,7 @@ ctx.clearRect(
 
         canvas.addEventListener(
             "pointermove",
-            pointerMove
+            pinterMove
         );
 
         // cleanup
