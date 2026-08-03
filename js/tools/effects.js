@@ -6,7 +6,7 @@ import { requireImage } from "../core/guard-engine.js";
 
 export function showEffectsPanel() {
     
-    const panel = document.getElementById('tool-panel');
+
     if (!requireImage()) return;
     openPanel(
     "Effects",
