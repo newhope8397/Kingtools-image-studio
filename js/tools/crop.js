@@ -1,7 +1,8 @@
 // js/tools/crop.js
 
-import { getEditor,logTool,setToolBar } from '../editor-core.js';
+import { getEditor,logTool } from '../editor-core.js';
 import { commitCanvas ,resizeCanvas } from "../core/canvas-engine.js";
+import { openPanel } from "../core/panel-engine.js";
 
 import { requireImage } from "../core/guard-engine.js";
 import { getCanvasPos } from "../core/event-engine.js";
@@ -19,11 +20,12 @@ export function showCropPanel() {
 
     logTool("Crop panel opened");
 
-    setToolBar(
-        "Crop",
-        "cancelCrop()",
-        "applyCrop()"
-    );
+    openPanel(
+    "Crop",
+    "",
+    window.applyCrop,
+    window.cancelCrop
+);
    
     sourceImage = new Image();
 
