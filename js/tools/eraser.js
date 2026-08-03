@@ -76,7 +76,7 @@ Drag on image to erase.
 
         canvas.addEventListener(
             "pointermove",
-            pinterMove
+            pointerMove
         );
 
         // cleanup
