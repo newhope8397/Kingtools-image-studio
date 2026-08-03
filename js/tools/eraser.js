@@ -13,10 +13,7 @@ let isErasing = false;
 
 export function showEraserPanel() {
 
-    const panel =
-        document.getElementById(
-            "tool-panel"
-        );
+    
     if (!requireImage()) return;
 
     openPanel(
