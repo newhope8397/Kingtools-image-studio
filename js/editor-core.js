@@ -98,8 +98,7 @@ export async function switchTool(n) {
     const panel = document.getElementById("tool-panel");
     if (!panel) return;
 
-    // 🔥 Always show panel (slide up)
-    panel.classList.add("active");
+
 
     // highlight active button
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -133,7 +132,8 @@ export async function switchTool(n) {
                 break;
         }
     } catch (err) {
-        console.error(err);
+        console.error("Tool error:", err);
+        
         panel.innerHTML = `
 <div style="padding:20px">
 ⚠️ Tool failed to load
