@@ -5,7 +5,7 @@ import { requireImage } from "../core/guard-engine.js";
 import { openPanel } from "../core/panel-engine.js";
 
 export function showFiltersPanel() {
-    const panel = document.getElementById('tool-panel');
+    
     if (!requireImage()) return;
     openPanel(
     "Filters",
