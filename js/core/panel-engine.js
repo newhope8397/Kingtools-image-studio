@@ -1,8 +1,11 @@
 import { state } from "./editor-state.js";
+import { deactivateTool } from "./tool-engine.js";
 
 export function openPanel(
     title,
-    content = ""
+    content = "",
+    onApply = null,
+    onClose = null
 ) {
 
     const panel =
@@ -40,14 +43,35 @@ export function openPanel(
 
     state.activePanel = title;
 
-    document
-        .getElementById(
-            "panel-close-btn"
-        )
-        ?.addEventListener(
-            "click",
-            closePanel
-        );
+ const closeBtn =
+document.getElementById(
+    "panel-close-btn"
+);
+
+const applyBtn =
+document.getElementById(
+    "panel-apply-btn"
+);
+
+closeBtn?.addEventListener(
+    "click",
+    () => {
+
+        if(onClose)
+            onClose();
+
+        closePanel();
+    }
+);
+
+applyBtn?.addEventListener(
+    "click",
+    () => {
+
+        if(onApply)
+            onApply();
+    }
+);
 }
 
 export function closePanel() {
@@ -58,6 +82,7 @@ export function closePanel() {
         );
 
     if (!panel) return;
+    deactivateTool();
 
     panel.classList.remove(
         "active"
