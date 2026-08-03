@@ -27,33 +27,6 @@ window.applyFilter = (type) => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
-
-const filters = {
-
-    grayscale(r,g,b) {
-        const gray = (r+g+b)/3;
-        return [gray,gray,gray];
-    },
-
-    sepia(r,g,b) {
-        return [
-            r*0.393 + g*0.769 + b*0.189,
-            r*0.349 + g*0.686 + b*0.168,
-            r*0.272 + g*0.534 + b*0.131
-        ];
-    },
-
-    vivid(r,g,b) {
-        return [
-            r*1.2,
-            g*1.2,
-            b*1.2
-        ];
-    }
-};
-
 const fn = filters[type];
 
 if(!fn) return;
