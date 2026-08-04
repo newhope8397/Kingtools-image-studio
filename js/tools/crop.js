@@ -6,11 +6,8 @@ import { openPanel } from "../core/panel-engine.js";
 
 import { requireImage } from "../core/guard-engine.js";
 import { getCanvasPos } from "../core/event-engine.js";
+import { cropState } from "./crop/crop-state.js";
 
-let isCropping = false;
-let startX = 0, startY = 0;
-let endX = 0, endY = 0;
-let activeHandle = null;
 let sourceImage = null;
 
 const HANDLE_SIZE = 14;
@@ -103,63 +100,63 @@ function startCrop(e) {
     const { canvas } = getEditor();
     const pos = getCanvasPos(e);
     
-    activeHandle =
+    cropState.handle =
     getHandleAt(pos.x, pos.y);
     if (e.pointerId !== undefined) {
     canvas.setPointerCapture(e.pointerId);
     }
 
-if (activeHandle) {
+if (cropState.handle) {
 
-    isCropping = true;
+    cropState.dragging = true;
     return;
 }
 
-    isCropping = true;
+    cropState.dragging = true;
     
-    startX = pos.x;
-    startY = pos.y;
+    cropState.startX = pos.x;
+    cropState.startY = pos.y;
 
-    endX = pos.x;
-    endY = pos.y;
+    cropState.x + cropState.width = pos.x;
+    cropState.y + cropState.height = pos.y;
 }
 
 function drawCrop(e) {
     if (!sourceImage) return;
-    if (!isCropping) return;
+    if (!cropState.dragging) return;
 
     const { canvas, ctx } = getEditor();
     const pos = getCanvasPos(e);
 
 
-if (activeHandle === "tl") {
+if (cropState.handle === "tl") {
 
-    startX = pos.x;
-    startY = pos.y;
-
-}
-else if (activeHandle === "tr") {
-
-    endX = pos.x;
-    startY = pos.y;
+    cropState.startX = pos.x;
+    cropState.startY = pos.y;
 
 }
-else if (activeHandle === "bl") {
+else if (cropState.handle === "tr") {
 
-    startX = pos.x;
-    endY = pos.y;
+    cropState.x + cropState.width = pos.x;
+    cropState.startY = pos.y;
 
 }
-else if (activeHandle === "br") {
+else if (cropState.handle === "bl") {
 
-    endX = pos.x;
-    endY = pos.y;
+    cropState.startX = pos.x;
+    cropState.y + cropState.height = pos.y;
+
+}
+else if (cropState.handle === "br") {
+
+    cropState.x + cropState.width = pos.x;
+    cropState.y + cropState.height = pos.y;
 
 }
 else {
 
-    endX = pos.x;
-    endY = pos.y;
+    cropState.x + cropState.width = pos.x;
+    cropState.y + cropState.height = pos.y;
 
 }
     
@@ -169,10 +166,17 @@ else {
         ctx.drawImage(sourceImage, 0, 0);
 
         // draw selection box
-const x = Math.min(startX, endX);
-const y = Math.min(startY, endY);
-const w = Math.abs(endX - startX);
-const h = Math.abs(endY - startY);
+const x = cropState.width >= 0
+    ? cropState.startX
+    : cropState.startX + cropState.width;
+
+const y = cropState.height >= 0
+    ? cropState.startY
+    : cropState.startY + cropState.height;
+
+const w = Math.abs(cropState.width);
+
+const h = Math.abs(cropState.height);
 
 // draw dark overlay
 ctx.fillStyle = "rgba(0,0,0,0.55)";
@@ -218,22 +222,29 @@ for (let i = 1; i < 3; i++) {
 function endCrop(e) {
     const { canvas } = getEditor();
 
-    isCropping = false;
+    cropState.dragging = false;
 
     if (e.pointerId !== undefined) {
         canvas.releasePointerCapture(e.pointerId);
     }
-    activeHandle = null;
+    cropState.handle = null;
 }
 
 window.applyCrop = () => {
     if (!sourceImage) return;
     const { ctx } = getEditor();
 
-    const x = Math.min(startX, endX);
-    const y = Math.min(startY, endY);
-    const w = Math.abs(endX - startX);
-    const h = Math.abs(endY - startY);
+    const x = cropState.width >= 0
+    ? cropState.startX
+    : cropState.startX + cropState.width;
+
+const y = cropState.height >= 0
+    ? cropState.startY
+    : cropState.startY + cropState.height;
+
+const w = Math.abs(cropState.width);
+
+const h = Math.abs(cropState.height);
 
 if (w < 30 || h < 30) {
     logTool("Crop rejected: area too small");
@@ -279,7 +290,7 @@ window.closeCrop = () => {
 };
 
 function cleanup() {
-    isCropping = false;
+    cropState.dragging = false;
     const { canvas } = getEditor();
 
     canvas.style.cursor = "default";
@@ -331,17 +342,23 @@ function drawHandles(x, y, w, h) {
 function getHandleAt(x, y) {
 
     if (
-        startX === endX &&
-        startY === endY
+        cropState.startX === cropState.x + cropState.width &&
+        cropState.startY === cropState.y + cropState.height
     ) {
         return null;
     }
 
-    const left = Math.min(startX, endX);
-    const top = Math.min(startY, endY);
-    const width = Math.abs(endX - startX);
-    const height = Math.abs(endY - startY);
+    const x = cropState.width >= 0
+    ? cropState.startX
+    : cropState.startX + cropState.width;
 
+const y = cropState.height >= 0
+    ? cropState.startY
+    : cropState.startY + cropState.height;
+
+const w = Math.abs(cropState.width);
+
+const h = Math.abs(cropState.height);
     const handles = {
         tl: [left, top],
         tr: [left + width, top],
@@ -368,7 +385,7 @@ function getHandleAt(x, y) {
 }
 function hoverCrop(e) {
 
-    if (isCropping) return;
+    if (cropState.dragging) return;
 
     const { canvas } = getEditor();
 
@@ -379,11 +396,11 @@ function hoverCrop(e) {
 
 function resetCrop() {
 
-    startX = 0;
-    startY = 0;
-    endX = 0;
-    endY = 0;
-    activeHandle = null;
+    cropState.startX = 0;
+    cropState.startY = 0;
+    cropState.x + cropState.width = 0;
+    cropState.y + cropState.height = 0;
+    cropState.handle = null;
     sourceImage = null;
 }
 function restoreImage() {
