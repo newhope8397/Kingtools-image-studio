@@ -117,8 +117,11 @@ if (cropState.handle) {
     cropState.startX = pos.x;
     cropState.startY = pos.y;
 
-    cropState.x + cropState.width = pos.x;
-    cropState.y + cropState.height = pos.y;
+    cropState.width =
+    pos.x - cropState.startX;
+
+   cropState.height =
+    pos.y - cropState.startY;
 }
 
 function drawCrop(e) {
@@ -137,26 +140,34 @@ if (cropState.handle === "tl") {
 }
 else if (cropState.handle === "tr") {
 
-    cropState.x + cropState.width = pos.x;
+    cropState.width =
+    pos.x - cropState.startX;
     cropState.startY = pos.y;
 
 }
 else if (cropState.handle === "bl") {
 
     cropState.startX = pos.x;
-    cropState.y + cropState.height = pos.y;
+    cropState.height =
+    pos.y - cropState.startY;
 
 }
 else if (cropState.handle === "br") {
 
-    cropState.x + cropState.width = pos.x;
-    cropState.y + cropState.height = pos.y;
+    cropState.width =
+    pos.x - cropState.startX;
+
+cropState.height =
+    pos.y - cropState.startY;
 
 }
 else {
 
-    cropState.x + cropState.width = pos.x;
-    cropState.y + cropState.height = pos.y;
+    cropState.width =
+    pos.x - cropState.startX;
+
+cropState.height =
+    pos.y - cropState.startY;
 
 }
     
@@ -360,11 +371,17 @@ const w = Math.abs(cropState.width);
 
 const h = Math.abs(cropState.height);
     const handles = {
-        tl: [left, top],
-        tr: [left + width, top],
-        bl: [left, top + height],
-        br: [left + width, top + height]
-    };
+
+    tl:[x,y],
+
+    tr:[x+w,y],
+
+    bl:[x,y+h],
+
+    br:[x+w,y+h]
+
+};
+
 
     for (const key in handles) {
 
@@ -398,8 +415,11 @@ function resetCrop() {
 
     cropState.startX = 0;
     cropState.startY = 0;
-    cropState.x + cropState.width = 0;
-    cropState.y + cropState.height = 0;
+    cropState.x = 0;
+    cropState.y = 0;
+
+    cropState.width = 0;
+    cropState.height = 0;
     cropState.handle = null;
     sourceImage = null;
 }
