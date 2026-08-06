@@ -1,4 +1,4 @@
-//////// crop-events.js //////
+//////// js/tools/crop/crop-events.js //////
 
 import { cropState } from "./crop-state.js";
 import { getEditor } from "../../editor-core.js";
