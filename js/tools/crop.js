@@ -353,46 +353,51 @@ function drawHandles(x, y, w, h) {
 function getHandleAt(x, y) {
 
     if (
-        cropState.startX === cropState.x + cropState.width &&
-        cropState.startY === cropState.y + cropState.height
+        cropState.width === 0 &&
+        cropState.height === 0
     ) {
         return null;
     }
 
-    const left = cropState.width >= 0
-    ? cropState.startX
-    : cropState.startX + cropState.width;
+    const left =
+        cropState.width >= 0
+        ? cropState.startX
+        : cropState.startX + cropState.width;
 
-const top = cropState.height >= 0
-    ? cropState.startY
-    : cropState.startY + cropState.height;
+    const top =
+        cropState.height >= 0
+        ? cropState.startY
+        : cropState.startY + cropState.height;
 
-const width = Math.abs(cropState.width);
+    const width = Math.abs(cropState.width);
+    const height = Math.abs(cropState.height);
 
-const height = Math.abs(cropState.height);
     const handles = {
 
-const handles = {
-    tl:[left,top],
-    tr:[left+width,top],
-    bl:[left,top+height],
-    br:[left+width,top+height]
-};
+        tl:[left,top],
 
+        tr:[left+width,top],
 
-    for (const key in handles) {
+        bl:[left,top+height],
 
-        function getHandleAt(mouseX, mouseY)
-        
-        const dx = mouseX - hx;
-        const dy = mouseY - hy;
+        br:[left+width,top+height]
 
-        if (
-        (dx * dx + dy * dy)< HANDLE_SIZE*
-            HANDLE_SIZE
-        ) {
+    };
+
+    for(const key in handles){
+
+        const [hx,hy]=handles[key];
+
+        const dx = x - hx;
+        const dy = y - hy;
+
+        if(
+            dx*dx + dy*dy <
+            HANDLE_SIZE*HANDLE_SIZE
+        ){
             return key;
         }
+
     }
 
     return null;
